@@ -1,11 +1,13 @@
 // src/index.js
-// import express from "express";
-const express = require("express");
+import express from "express";
+import type { Express, Request, Response } from "express";
 
-const app = express();
+const app:Express = express();
+const port:number = 3001;
 
-app.get("/", async (req, res) => {
-  const reqTime = Date.now();
+app.get("/", async (req: Request, res: Response) => {
+  console.log("test");
+
   console.log(Array.from("foo"));
 
   await new Promise((resolve) => {
@@ -20,4 +22,6 @@ app.get("/", async (req, res) => {
   });
 });
 
-app.listen(3001, () => console.log("listening on port 3001!"));
+
+
+app.listen(port, () => console.log("listening on port 3001!"));

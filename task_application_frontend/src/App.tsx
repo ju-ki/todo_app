@@ -1,28 +1,15 @@
-import './App.css';
+import Footer from './components/common/Footer';
+import Header from './components/common/Header';
+import TopPage from './components/top/TopPage';
 
 function App() {
-  const test = "aaa";
-  // const handleClick = ():void => {
-  //   window.location.href = '/';
-  // };
-
   return (
-    <div className="App">
-      Hello World
-      <div
-        role="button"
-        tabIndex={0}
-        className="test"
-        // role="button"
-        // tabIndex={0}
-        // // onClick={() => handleClick()}
-        // onKeyDown={() => handleClick()}
-      >
-        {test}
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <div className="flex-grow">
+        <TopPage />
       </div>
-      <button type="button" className="test">
-        test2
-      </button>
+      <Footer />
     </div>
   );
 }

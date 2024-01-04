@@ -27,5 +27,8 @@
   "include": [
     "src",
     "./.eslintrc.js",
+  ],
+  "exclude": [
+    "./tailwind.config.js"
   ]
 }

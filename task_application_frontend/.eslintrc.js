@@ -29,7 +29,12 @@ module.exports = {
         "react",
         "@typescript-eslint"
     ],
-    "ignorePatterns": ['.eslintrc.*', 'vite.config.*'],
+    //eslintを無効にするファイル一覧の設定
+    "ignorePatterns": [
+        '.eslintrc.*',
+        'vite.config.*',
+        'tailwind.config.js'
+    ],
     "rules": {
         "react/react-in-jsx-scope": "off",
         "quotes": "off",
