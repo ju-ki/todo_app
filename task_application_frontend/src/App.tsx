@@ -1,16 +1,18 @@
-import Footer from './components/common/Footer';
-import Header from './components/common/Header';
-import TopPage from './components/top/TopPage';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import TopPage from "./pages/TopPage";
+import SignInPage from "./pages/auth/SignInPage";
+import SignUpPage from "./pages/auth/SignUpPage";
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <div className="flex-grow">
-        <TopPage />
-      </div>
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<TopPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route path="/sign-in" element={<SignInPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

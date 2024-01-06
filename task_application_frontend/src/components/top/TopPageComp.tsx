@@ -1,4 +1,4 @@
-export default function TopPage() {
+export default function TopPageComp() {
   return (
     <div className="my-60 md:container md:mx-auto container mx-auto">
       <div className="md:flex justify-around my-24">
@@ -62,7 +62,6 @@ export default function TopPage() {
           </div>
         </div>
       </div>
-
     </div>
 
   );

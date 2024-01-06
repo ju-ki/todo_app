@@ -39,6 +39,10 @@ module.exports = {
         "react/react-in-jsx-scope": "off",
         "quotes": "off",
         "@typescript-eslint/quotes": "off",
+        'import/no-extraneous-dependencies': ['error', {
+            devDependencies: false, // devDependenciesのimportを許可
+            optionalDependencies: false,
+        }],
         "import/order": [
             2,
             {
