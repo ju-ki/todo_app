@@ -1,5 +1,5 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { UserButton, useUser } from "@clerk/clerk-react";
+import { Bell, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Header() {
@@ -27,9 +27,27 @@ export default function Header() {
               </Link>
             </>
           ) : (
-            <p>
-              <UserButton afterSignOutUrl="/" />
-            </p>
+            <div
+              className="flex items-center"
+            >
+              <div className="me-10">
+                <button
+                  type="button"
+                  className="flex items-center bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
+                >
+                  <Plus className="h-4 w-4" />
+                  新規ワークスペースを作成
+                </button>
+              </div>
+              <div
+                className="me-8"
+              >
+                <UserButton
+                  afterSignOutUrl="/"
+                />
+              </div>
+              <Bell className="h-8 w-8 me-8" />
+            </div>
           )}
         </div>
       </div>

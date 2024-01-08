@@ -40,8 +40,8 @@ module.exports = {
         "quotes": "off",
         "@typescript-eslint/quotes": "off",
         'import/no-extraneous-dependencies': ['error', {
-            devDependencies: false, // devDependenciesのimportを許可
-            optionalDependencies: false,
+            devDependencies: true, // devDependenciesのimportを許可
+            optionalDependencies: true,
         }],
         "import/order": [
             2,

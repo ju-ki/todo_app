@@ -6,7 +6,7 @@ export default function SignInComp() {
       <SignIn
         path="sign-in"
         signUpUrl="/sign-up"
-        afterSignInUrl="/save-profile"
+        afterSignInUrl="/"
       />
     </div>
   );

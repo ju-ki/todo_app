@@ -17,7 +17,100 @@ model User {
   name String
   imageUrl String @db.Text
   email String @db.Text
-
+  workSpaceId String?
+  workSpaces WorkSpace[]
+  userWorkSpaces UserWorkSpace[]
+  taskAssignmentId String?
+  taskAssignment TaskAssignments[]
+  notificationId String?
+  notifications Notification[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+model WorkSpace {
+  id String @id @default(uuid())
+  title String
+  userId String
+  inviteCode String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+  userWorkSpaces UserWorkSpace[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+enum TaskStatus {
+  TODO
+  DOING
+  DONE
+  WAITING
+}
+
+enum TaskLabel {
+  REQUIRED
+  IMPORTANT
+  PRIORITY
+  OPTIONAL
+}
+
+model Task {
+  taskId String @id @default(uuid())
+  title String
+  description String
+  status TaskStatus @default(TODO)
+  label TaskLabel @default(OPTIONAL)
+  workSpaceId String
+  workSpace WorkSpace @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
+  userAssignmentId String
+  taskAssignments TaskAssignments[]
+  notificationId String
+  notifications Notification[]
+  dueDate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+
+model UserWorkSpace {
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  workSpace WorkSpace @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
+  workSpaceId String
+  role MemberRole @default(GUEST)
+  createdAt DateTime @default(now())
+
+  @@id([userId, workSpaceId])
+}
+
+enum MemberRole {
+  ADMIN
+  MODERATOR
+  GUEST
+}
+
+
+model TaskAssignments {
+  id String @id @default(uuid())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  task Task @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
+  taskId String
+  @@index([userId, taskId])
+}
+
+
+model Notification {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId String
+  task Task @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, taskId])
 }

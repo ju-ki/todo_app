@@ -1,4 +1,23 @@
+import { useAuth } from "@clerk/clerk-react";
+import axios from "axios";
+import { useEffect } from "react";
+
 export default function TopPageComp() {
+  const { userId } = useAuth();
+  useEffect(() => {
+    async function saveProfile() {
+      try {
+        const response = await axios.post("http://localhost:3001/save-profile", { userId });
+        console.log(response);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    if (userId) {
+      saveProfile();
+    }
+  }, [userId]);
+
   return (
     <div className="my-60 md:container md:mx-auto container mx-auto">
       <div className="md:flex justify-around my-24">

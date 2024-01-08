@@ -4,8 +4,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-const PUBLISHABLE_KEY = "pk_test_aGVscGVkLWNvdWdhci02My5jbGVyay5hY2NvdW50cy5kZXYk";
-// const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "";
+const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY as string;
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");

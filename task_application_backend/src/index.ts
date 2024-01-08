@@ -1,9 +1,19 @@
 // src/index.js
 import express from "express";
+import cors from "cors";
 import type { Express, Request, Response } from "express";
+import { Clerk } from "@clerk/backend";
+import { PrismaClient } from "@prisma/client";
 
 const app:Express = express();
-const port:number = 3001;
+const port: number = 3001;
+const secretKey="sk_test_rKEI19ao1ojaGdp8lTzWFivEndK11iCPG4PmV1lRDS";
+
+
+// CORS設定を追加
+app.use(cors());
+// リクエストボディを解析するためのミドルウェアを追加
+app.use(express.json());
 
 app.get("/", async (req: Request, res: Response) => {
   console.log("test");
@@ -18,9 +28,48 @@ app.get("/", async (req: Request, res: Response) => {
 
   res.status(200).send({
     msg: "hello world!",
-    elaptime: Date.now(),
   });
 });
+
+
+
+app.post("/save-profile", async (req: Request, res: Response) => {
+  const clerkClient = Clerk({ secretKey: secretKey });
+  const userId = req.body.userId;
+  try {
+    const db = new PrismaClient();
+    const user = await clerkClient.users.getUser(userId);
+
+    const profile = await db.user.findUnique({
+      where: {
+        userId: userId
+      }
+    });
+
+    if (profile) {
+      res.status(200).send({
+        profile:profile
+      })
+      return;
+    }
+
+
+    const newProfile = await db.user.create({
+      data: {
+        userId: userId,
+        name: `${ user.firstName } ${ user.lastName }`,
+        imageUrl: user.imageUrl,
+        email: user.emailAddresses[0].emailAddress
+      },
+    });
+    res.status(200).send({
+      profile: newProfile
+    });
+  } catch (err) {
+    console.error(err); // エラー時のログ
+    res.status(500).send({ error: err });
+  }
+})
 
 
 
