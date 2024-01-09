@@ -43,6 +43,12 @@ module.exports = {
             devDependencies: true, // devDependenciesのimportを許可
             optionalDependencies: true,
         }],
+        "react/jsx-props-no-spreading": "off",
+        "react/require-default-props": "off",
+        "react/prop-types": "off",
+        "react/jsx-no-constructed-context-values": "off",
+        "@typescript-eslint/no-use-before-define": "off",
+        "import/prefer-default-export": "off",
         "import/order": [
             2,
             {

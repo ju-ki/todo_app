@@ -1,8 +1,10 @@
 import { UserButton, useUser } from "@clerk/clerk-react";
 import { Bell, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useModal } from "src/hook/use-modal";
 
 export default function Header() {
+  const { onOpen } = useModal();
   const { isSignedIn, isLoaded } = useUser() as { isSignedIn: Boolean; isLoaded:Boolean };
 
   if (!isLoaded) {
@@ -33,6 +35,7 @@ export default function Header() {
               <div className="me-10">
                 <button
                   type="button"
+                  onClick={() => onOpen("createWorkSpace")}
                   className="flex items-center bg-white hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow"
                 >
                   <Plus className="h-4 w-4" />
