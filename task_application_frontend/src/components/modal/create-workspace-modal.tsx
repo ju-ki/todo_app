@@ -1,4 +1,6 @@
+import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import { useModal } from "src/hook/use-modal";
 import * as z from "zod";
@@ -18,6 +20,7 @@ const formScheme = z.object({
 });
 
 export default function CreateWorkSpaceModal() {
+  const { userId } = useAuth();
   const { isOpen, onClose, type } = useModal();
   const isModalOpen = isOpen && type === "createWorkSpace";
   const form = useForm({
@@ -27,8 +30,12 @@ export default function CreateWorkSpaceModal() {
     },
   });
 
-  const onSubmit = () => {
-    console.log("submit");
+  const onSubmit = async (values: z.infer<typeof formScheme>) => {
+    try {
+      await axios.post("http://localhost:3001/create/workspace", { ...values, userId });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleClose = () => {

@@ -76,7 +76,7 @@ model Task {
 
 
 model UserWorkSpace {
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   userId String
   workSpace WorkSpace @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
   workSpaceId String
