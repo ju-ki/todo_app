@@ -1,8 +1,9 @@
 import { useAuth } from "@clerk/clerk-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { useModal } from "src/hook/use-modal";
+import axios from "src/lib/axios";
 import * as z from "zod";
 import { Button } from "../ui/button";
 import {
@@ -21,6 +22,7 @@ const formScheme = z.object({
 
 export default function CreateWorkSpaceModal() {
   const { userId } = useAuth();
+  const navigate = useNavigate();
   const { isOpen, onClose, type } = useModal();
   const isModalOpen = isOpen && type === "createWorkSpace";
   const form = useForm({
@@ -32,7 +34,10 @@ export default function CreateWorkSpaceModal() {
 
   const onSubmit = async (values: z.infer<typeof formScheme>) => {
     try {
-      await axios.post("http://localhost:3001/create/workspace", { ...values, userId });
+      const workspace = await axios.post("/workspaces", { ...values, userId });
+      form.reset();// フォームの中身を空の状態にする
+      onClose();// モーダルを閉じる
+      navigate(`/workspace/${workspace.data.workspace.id}`);// リダイレクト
     } catch (err) {
       console.log(err);
     }

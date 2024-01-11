@@ -1,18 +1,24 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import {
+  Route, Routes,
+} from "react-router-dom";
 import TopPage from "./pages/TopPage";
+import WorkSpace from "./pages/WorkSpace";
 import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
+import ModalProvider from "./provider/modal-provider";
+// import router from "./router";
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         <Route path="/" element={<TopPage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route path="/workspace/:workspaceId" element={<WorkSpace />} />
       </Routes>
-    </BrowserRouter>
+      <ModalProvider />
+    </>
   );
 }
 

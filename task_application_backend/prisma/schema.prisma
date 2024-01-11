@@ -12,7 +12,6 @@ datasource db {
 
 
 model User {
-  id String @id @default(uuid())
   userId String @unique
   name String
   imageUrl String @db.Text
@@ -34,7 +33,7 @@ model WorkSpace {
   title String
   userId String
   inviteCode String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   tasks Task[]
   userWorkSpaces UserWorkSpace[]
   createdAt DateTime @default(now())
@@ -95,7 +94,7 @@ enum MemberRole {
 
 model TaskAssignments {
   id String @id @default(uuid())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   userId String
   task Task @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
   taskId String
@@ -106,7 +105,7 @@ model TaskAssignments {
 model Notification {
   id String @id @default(uuid())
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   taskId String
   task Task @relation(fields: [taskId], references: [taskId], onDelete: Cascade)
   isRead Boolean @default(false)

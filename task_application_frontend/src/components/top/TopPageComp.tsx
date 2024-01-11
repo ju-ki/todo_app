@@ -1,13 +1,13 @@
 import { useAuth } from "@clerk/clerk-react";
-import axios from "axios";
 import { useEffect } from "react";
+import axios from "src/lib/axios";
 
 export default function TopPageComp() {
   const { userId } = useAuth();
   useEffect(() => {
     async function saveProfile() {
       try {
-        const response = await axios.post("http://localhost:3001/save-profile", { userId });
+        const response = await axios.post("/users", { userId });
         console.log(response);
       } catch (err) {
         console.log(err);
