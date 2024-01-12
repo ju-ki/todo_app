@@ -1,11 +1,40 @@
-import { UserButton, useUser } from "@clerk/clerk-react";
+import { UserButton, useAuth, useUser } from "@clerk/clerk-react";
 import { Bell, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useModal } from "src/hook/use-modal";
+import axios from "src/lib/axios";
+
+type WorkSpaceProps = {
+  id: string,
+  title: string,
+  userId: string,
+  inviteCode: string
+};
 
 export default function Header() {
   const { onOpen } = useModal();
-  const { isSignedIn, isLoaded } = useUser() as { isSignedIn: Boolean; isLoaded:Boolean };
+  const { userId } = useAuth();
+  const { isSignedIn, isLoaded } = useUser() as { isSignedIn: Boolean; isLoaded: Boolean };
+  const [workspaces, setWorkspaces] = useState<WorkSpaceProps[]>([]);
+
+  useEffect(() => {
+    async function fetchWorkspaces() {
+      try {
+        const response = await axios.get("/workspaces", {
+          params: {
+            userId,
+          },
+        });
+        setWorkspaces(response.data.workSpaces);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    if (userId) {
+      fetchWorkspaces();
+    }
+  }, [userId]);
 
   if (!isLoaded) {
     return null;
@@ -32,6 +61,20 @@ export default function Header() {
             <div
               className="flex items-center"
             >
+              <div className="me-10">
+                {workspaces.map((workspace) => (
+                  <div key={workspace.id}>
+                    <Link
+                      to={`/workspace/${workspace.id}`}
+                      className=""
+                    >
+                      <p>{workspace.title}</p>
+                    </Link>
+
+                  </div>
+
+                ))}
+              </div>
               <div className="me-10">
                 <button
                   type="button"

@@ -6,7 +6,6 @@ import WorkSpace from "./pages/WorkSpace";
 import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
 import ModalProvider from "./provider/modal-provider";
-// import router from "./router";
 
 function App() {
   return (

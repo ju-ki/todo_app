@@ -9,6 +9,32 @@ const secretKey = process.env.CLERK_SECRET_KEY;
 const clerkClient = Clerk({ secretKey: secretKey });
 
 
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+    const userId = req.query.userId as string;
+    const user = await clerkClient.users.getUser(userId);
+
+    if (!user) {
+      res.status(400).send({
+        "message": "User Not Found"
+      });
+    }
+
+    const workSpaces = await db.workSpace.findMany({
+      where: {
+        userId:userId
+      }
+    });
+
+    res.status(200).send({ workSpaces: workSpaces });
+  } catch (err) {
+    console.log("[FETCHING_WORKSPACE_ERROR]", err);
+    res.status(500).send({ error: err });
+  }
+})
+
+
 router.post("/", async (req: Request, res: Response) => {
   try {
     const db = new PrismaClient();
