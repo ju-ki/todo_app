@@ -35,6 +35,52 @@ router.get("/", async (req: Request, res: Response) => {
 })
 
 
+router.get("/details", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+    const userId = req.query.userId as string;
+    const workSpaceId = req.query.workSpaceId as string;
+    const user = await clerkClient.users.getUser(userId);
+    if (!user) {
+      res.status(401).send({
+        "message": "Unauthorized"
+      });
+    }
+
+    if (!workSpaceId) {
+      res.status(404).send({
+        "message": "WorkSpaceId is Missing"
+      });
+    }
+
+    //workspaceに一致するtaskの取得
+    const task = await db.task.findMany({
+      where: {
+        workSpaceId: workSpaceId
+      }
+    });
+
+    //workspaceに属しているユーザーの取得
+    const users = await db.user.findMany({
+      where: {
+        workSpaces: {
+          some: {
+            id:workSpaceId
+          }
+        }
+      }
+    });
+
+    res.status(200).send({ task:task, users:users});
+
+  } catch (err) {
+    res.status(500).send({
+      error:err
+    })
+  }
+})
+
+
 router.post("/", async (req: Request, res: Response) => {
   try {
     const db = new PrismaClient();

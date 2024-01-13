@@ -33,7 +33,10 @@ module.exports = {
     "ignorePatterns": [
         '.eslintrc.*',
         'vite.config.*',
-        'tailwind.config.js'
+        'tailwind.config.js',
+        //ライブラリはeslintを除外したい
+        'src/components/ui/*.tsx',
+        'src/lib/utils.ts'
     ],
     "rules": {
         "react/react-in-jsx-scope": "off",

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useModal } from "src/hook/use-modal";
 import axios from "src/lib/axios";
+import WorkSpaceItem from "../workspace/workspace-item";
 
 type WorkSpaceProps = {
   id: string,
@@ -40,10 +41,10 @@ export default function Header() {
     return null;
   }
   return (
-    <div className="bg-gray-800 text-white fixed top-0 left-0 right-0 z-10">
+    <div className="bg-gray-800 fixed top-0 left-0 right-0 z-10">
       <div className="flex justify-between items-center p-4">
         <div className="font-bold text-xl">
-          <Link to="/">
+          <Link className="text-white" to="/">
             タスクメモ
           </Link>
         </div>
@@ -62,18 +63,7 @@ export default function Header() {
               className="flex items-center"
             >
               <div className="me-10">
-                {workspaces.map((workspace) => (
-                  <div key={workspace.id}>
-                    <Link
-                      to={`/workspace/${workspace.id}`}
-                      className=""
-                    >
-                      <p>{workspace.title}</p>
-                    </Link>
-
-                  </div>
-
-                ))}
+                <WorkSpaceItem workspaces={workspaces} />
               </div>
               <div className="me-10">
                 <button
