@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import CreateWorkSpaceModal from "src/components/modal/create-workspace-modal";
+import MembersModal from "src/components/modal/members-modal";
 
 export default function ModalProvider() {
   const [isMounted, setIsMounted] = useState(false);
@@ -13,6 +14,9 @@ export default function ModalProvider() {
   }
 
   return (
-    <CreateWorkSpaceModal />
+    <>
+      <CreateWorkSpaceModal />
+      <MembersModal />
+    </>
   );
 }

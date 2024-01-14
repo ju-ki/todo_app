@@ -33,6 +33,7 @@ model WorkSpace {
   title String
   userId String
   inviteCode String
+  //TODO:usersに変更
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   tasks Task[]
   userWorkSpaces UserWorkSpace[]

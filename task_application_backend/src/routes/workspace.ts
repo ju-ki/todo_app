@@ -14,10 +14,9 @@ router.get("/", async (req: Request, res: Response) => {
     const db = new PrismaClient();
     const userId = req.query.userId as string;
     const user = await clerkClient.users.getUser(userId);
-
     if (!user) {
-      res.status(400).send({
-        "message": "User Not Found"
+      res.status(401).send({
+        "message": "Unauthorized"
       });
     }
 
@@ -26,7 +25,6 @@ router.get("/", async (req: Request, res: Response) => {
         userId:userId
       }
     });
-
     res.status(200).send({ workSpaces: workSpaces });
   } catch (err) {
     console.log("[FETCHING_WORKSPACE_ERROR]", err);
@@ -53,25 +51,29 @@ router.get("/details", async (req: Request, res: Response) => {
       });
     }
 
-    //workspaceに一致するtaskの取得
-    const task = await db.task.findMany({
-      where: {
-        workSpaceId: workSpaceId
-      }
-    });
 
-    //workspaceに属しているユーザーの取得
-    const users = await db.user.findMany({
+    const workSpace = await db.workSpace.findFirst({
       where: {
-        workSpaces: {
-          some: {
-            id:workSpaceId
+        id:workSpaceId
+      },
+      include: {
+        tasks: true,
+        userWorkSpaces: {
+          select: {
+            user: true,
+            role:true
           }
         }
-      }
-    });
+      },
+    })
 
-    res.status(200).send({ task:task, users:users});
+    if (!workSpace) {
+      res.status(404).send({
+        "message":"WorkSpace is Missing"
+      })
+    }
+
+    res.status(200).send({ workSpace:workSpace});
 
   } catch (err) {
     res.status(500).send({
