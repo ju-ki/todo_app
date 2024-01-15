@@ -1,7 +1,9 @@
-import { Check, Copy } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
+import { Check, Copy, RefreshCcw } from 'lucide-react';
 import { useState } from 'react';
 import { useModal } from 'src/hook/use-modal';
 import { useOrigin } from 'src/hook/use-origin';
+import axios from 'src/lib/axios';
 import { AvatarImage, Avatar, AvatarFallback } from '../ui/avatar';
 import { Button } from '../ui/button';
 import {
@@ -10,6 +12,7 @@ import {
 import { Input } from '../ui/input';
 
 export default function MembersModal() {
+  const { userId } = useAuth();
   const [copied, setCopied] = useState(false);
   const origin = useOrigin();
   const {
@@ -28,6 +31,19 @@ export default function MembersModal() {
   };
   const handleClose = () => {
     onClose();
+  };
+
+  const onUpdateInviteCode = async () => {
+    try {
+      const response = await axios.patch('/workspaces/invite', {
+        userId,
+        workSpaceId: data?.workSpace?.id,
+
+      });
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -75,6 +91,18 @@ export default function MembersModal() {
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             </Button>
           </div>
+          <Button
+            onClick={onUpdateInviteCode}
+            disabled={false}
+            variant="link"
+            size="sm"
+            className="text-xs text-zinc-500 mt-4"
+          >
+            Generate a new link
+            <RefreshCcw
+              className="w-4 h-4 ml-2"
+            />
+          </Button>
         </DialogContent>
       </Dialog>
     </div>

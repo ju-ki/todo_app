@@ -9,6 +9,9 @@ const secretKey = process.env.CLERK_SECRET_KEY;
 const clerkClient = Clerk({ secretKey: secretKey });
 
 
+/**
+ * ワークスペース一覧の取得
+ */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const db = new PrismaClient();
@@ -33,6 +36,9 @@ router.get("/", async (req: Request, res: Response) => {
 })
 
 
+/**
+ * ワークスペースの詳細情報の取得
+ */
 router.get("/details", async (req: Request, res: Response) => {
   try {
     const db = new PrismaClient();
@@ -83,6 +89,9 @@ router.get("/details", async (req: Request, res: Response) => {
 })
 
 
+/**
+ * ワークスペースの作成
+ */
 router.post("/", async (req: Request, res: Response) => {
   try {
     const db = new PrismaClient();
@@ -93,7 +102,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     if (!user) {
       res.status(400).send({
-        "message":"User Not Found"
+        "message": "User Not Found"
       });
     }
 
@@ -109,18 +118,60 @@ router.post("/", async (req: Request, res: Response) => {
         //中間テーブルの作成
         userWorkSpaces: {
           create: [
-            { userId:userId, role: MemberRole.ADMIN }
+            { userId: userId, role: MemberRole.ADMIN }
           ]
         }
       }
     })
-    //作成されたworkspaceIをもとにリダイレクトを行うためデータの返却
+    //作成されたworkspaceIDをもとにリダイレクトを行うためデータの返却
     res.status(201).send({ workspace: newWorkspace });
   } catch (err) {
     console.log("[CREATE_WORKSPACE_ERROR]", err);
     res.status(500).send({ error: err });
   }
-})
+});
+
+
+/**
+ * 招待コードを更新する
+ */
+router.patch("/invite", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+    const userId = req.body.userId as string;
+    const user = await clerkClient.users.getUser(userId);
+    const workSpaceId = req.body.workSpaceId as string;
+
+    if (!user) {
+      res.status(401).send({
+        "message": "Unauthorized"
+      })
+    }
+
+    if (!workSpaceId) {
+      res.status(404).send({
+        "message": "WorkSpaceId is Missing"
+      })
+    }
+
+    const newWorkSpace = await db.workSpace.update({
+      where: {
+        id: workSpaceId
+      },
+      data: {
+        inviteCode: uuidv4()
+      }
+    })
+
+    res.status(200).send({ newWorkSpace: newWorkSpace });
+  } catch (err) {
+    console.log("UPDATE_INVITE_CODE_ERR:" + err);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+
+// router.patch("/invite/${}")
 
 
 module.exports = router;
