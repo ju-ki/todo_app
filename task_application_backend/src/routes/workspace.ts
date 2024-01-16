@@ -171,7 +171,59 @@ router.patch("/invite", async (req: Request, res: Response) => {
 });
 
 
-// router.patch("/invite/${}")
+router.patch("/invite/:inviteCode", async (req: Request, res: Response) => {
+  try {
+    try {
+    const db = new PrismaClient();
+    const userId = req.body.userId as string;
+      const user = await clerkClient.users.getUser(userId);
+      const inviteCode = req.params.inviteCode;
+
+      if (!user) {
+        res.status(401).send({ "message": "Unauthorized" });
+      }
+
+      if (!inviteCode) {
+        res.status(400).send({
+          "message":"InviteCode is Missing"
+        })
+      }
+
+      //
+      const workSpace = await db.workSpace.findFirst({
+        where: {
+          inviteCode:inviteCode,
+        }
+      })
+
+      if (!workSpace) {
+        res.status(404).send({
+          "message":"WorkSpace Not Found"
+        })
+      }
+
+      //中間テーブルの更新について調べる
+      // const newWorkSpace = await db.workSpace.update({
+      //   where: {
+      //     inviteCode:inviteCode
+      //   },
+      //   data: {
+      //     userWorkSpaces: {
+      //       update: {
+      //         data: {
+      //         }
+      //       }
+      //     }
+      //   }
+      // })
+
+
+
+  } catch (err) {
+    console.log("UPDATE_WORKSPACE_ERROR:", err);
+    res.status(500).send({ "message": "Internal Server Error" });
+  }
+})
 
 
 module.exports = router;
