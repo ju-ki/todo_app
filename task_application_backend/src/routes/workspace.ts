@@ -21,13 +21,19 @@ router.get("/", async (req: Request, res: Response) => {
       res.status(401).send({
         "message": "Unauthorized"
       });
+      return;
     }
 
     const workSpaces = await db.workSpace.findMany({
       where: {
-        userId:userId
+        userWorkSpaces: {
+          some: {
+            userId:userId
+          }
+        }
       }
     });
+    console.log(workSpaces);
     res.status(200).send({ workSpaces: workSpaces });
   } catch (err) {
     console.log("[FETCHING_WORKSPACE_ERROR]", err);
@@ -110,11 +116,6 @@ router.post("/", async (req: Request, res: Response) => {
       data: {
         title: title,
         inviteCode: uuidv4(),
-        user: {
-          connect: {
-            userId: userId,
-          },
-        },
         //中間テーブルの作成
         userWorkSpaces: {
           create: [
@@ -189,7 +190,8 @@ router.post("/invite/:inviteCode", async (req: Request, res: Response) => {
     if (!inviteCode) {
       res.status(400).send({
         "message": "InviteCode is Missing"
-      })
+      });
+      return;
     }
 
     //招待コードをもとにワークスペースの検索
@@ -203,15 +205,17 @@ router.post("/invite/:inviteCode", async (req: Request, res: Response) => {
       res.status(404).send({
         "message": "WorkSpace Not Found"
       })
+      return;
     }
 
     await db.userWorkSpace.create({
       data: {
         userId: userId,
         workSpaceId: workSpace?.id as string,
-        role: MemberRole.GUEST
+        role: MemberRole.GUEST,
       }
     });
+
     //返すのはワークスペースの方が良い?(中間テーブル返すのは違和感)
     res.status(201).send({ workSpace: workSpace });
 

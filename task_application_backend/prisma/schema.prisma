@@ -16,12 +16,8 @@ model User {
   name String
   imageUrl String @db.Text
   email String @db.Text
-  workSpaceId String?
-  workSpaces WorkSpace[]
   userWorkSpaces UserWorkSpace[]
-  taskAssignmentId String?
   taskAssignment TaskAssignments[]
-  notificationId String?
   notifications Notification[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -31,16 +27,24 @@ model User {
 model WorkSpace {
   id String @id @default(uuid())
   title String
-  userId String
   inviteCode String
-  //TODO:usersに変更
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
   tasks Task[]
   userWorkSpaces UserWorkSpace[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+
+model UserWorkSpace {
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId String
+  workSpace WorkSpace @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
+  workSpaceId String
+  role MemberRole @default(GUEST)
+  createdAt DateTime @default(now())
+
+  @@id([userId, workSpaceId])
+}
 
 enum TaskStatus {
   TODO
@@ -75,16 +79,6 @@ model Task {
 }
 
 
-model UserWorkSpace {
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  userId String
-  workSpace WorkSpace @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
-  workSpaceId String
-  role MemberRole @default(GUEST)
-  createdAt DateTime @default(now())
-
-  @@id([userId, workSpaceId])
-}
 
 enum MemberRole {
   ADMIN
