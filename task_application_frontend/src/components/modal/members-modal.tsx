@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import { Check, Copy, RefreshCcw } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useModal } from 'src/hook/use-modal';
 import { useOrigin } from 'src/hook/use-origin';
 import axios from 'src/lib/axios';
@@ -10,16 +10,34 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '../ui/dialog';
 import { Input } from '../ui/input';
+import AuthorityDropdown from '../workspace/authority-dropdown';
 
 export default function MembersModal() {
   const { userId } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const origin = useOrigin();
   const {
     isOpen, onClose, type, data,
   } = useModal();
+  const [inviteCode, setInviteCode] = useState("");
   const isModalOpen = isOpen && type === "members";
-  const inviteUrl = `${origin}/invite/${data?.workSpace?.inviteCode}`;
+  const inviteUrl = `${origin}/invite/${inviteCode}`;
+
+  useEffect(() => {
+    if (isOpen) {
+      const userInfo = data?.workSpace?.userWorkSpaces?.filter(
+        (userWorkSpace: Record<string, any>) => (userWorkSpace.user.userId === userId),
+      );
+      setIsAdmin(userInfo[0]?.role === "ADMIN");
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (data) {
+      setInviteCode(data?.workSpace?.inviteCode);
+    }
+  }, [data]);
 
   const onCopy = () => {
     navigator.clipboard.writeText(inviteUrl);
@@ -40,7 +58,7 @@ export default function MembersModal() {
         workSpaceId: data?.workSpace?.id,
 
       });
-      console.log(response);
+      setInviteCode(response.data.newWorkSpace.inviteCode);
     } catch (err) {
       console.log(err);
     }
@@ -64,14 +82,25 @@ export default function MembersModal() {
             </DialogTitle>
           </DialogHeader>
           {data?.workSpace?.userWorkSpaces?.map((user: Record<string, any>) => (
-            <div key={user?.user?.userId} className="flex items-center space-x-4 p-4 bg-white border-b border-gray-200">
-              <Avatar className="bg-gray-200 rounded-full overflow-hidden w-10 h-10">
-                <AvatarImage src={user?.user?.imageUrl} alt="profile image" className="w-full h-full object-cover" />
-                <AvatarFallback className="flex justify-center items-center text-sm">CN</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <div className="text-sm font-medium text-gray-900">{user?.user?.name}</div>
-                <div className="text-sm text-gray-500">{user?.role}</div>
+            <div key={user?.user?.userId} className="flex items-center justify-between space-x-4 p-4 bg-white border-b border-gray-200">
+              <div className="flex items-center">
+                <Avatar className="bg-gray-200 rounded-full overflow-hidden w-10 h-10">
+                  <AvatarImage src={user?.user?.imageUrl} alt="profile image" className="w-full h-full object-cover" />
+                  <AvatarFallback className="flex justify-center items-center text-sm">CN</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col ms-5">
+                  <div className="text-sm font-medium text-gray-900">{user?.user?.name}</div>
+                  <div className="text-sm text-gray-500">{user?.role}</div>
+                </div>
+              </div>
+              <div>
+                {(user?.user?.userId !== userId && isAdmin) && (
+                  <AuthorityDropdown
+                    userId={userId}
+                    user={user}
+                    workSpaceId={data?.workSpace?.id}
+                  />
+                )}
               </div>
             </div>
           ))}

@@ -52,10 +52,12 @@ router.post("/", async (req: Request, res: Response) => {
 
 router.patch("/authority", async (req: Request, res: Response) => {
   const userId = req.body.userId;
+  const targetAuthority = req.body.targetAuthority;
   const targetUserId = req.body.targetUserId;
   const workSpaceId = req.body.workSpaceId;
 
   try {
+    const db = new PrismaClient();
     const user = await clerkClient.users.getUser(userId);
 
     if (!user) {
@@ -69,6 +71,46 @@ router.patch("/authority", async (req: Request, res: Response) => {
     if (!workSpaceId) {
       res.status(400).send({ "message": "WorkSpaceId is Missing" });
     }
+
+    if (!targetAuthority) {
+      res.status(400).send({ "message": "target Authority is Missing" });
+    }
+
+    //TODO:ここに権限変更のコードを書く
+    await db.userWorkSpace.update({
+      where: {
+        userId_workSpaceId: {
+          workSpaceId: workSpaceId as string,
+          userId: targetUserId as string
+        }
+      },
+      data: {
+        role: targetAuthority
+      }
+    });
+
+    const workSpace = await db.workSpace.findFirst({
+      where: {
+        id: workSpaceId
+      },
+      include: {
+        tasks: true,
+        userWorkSpaces: {
+          select: {
+            user: true,
+            role: true
+          }
+        }
+      },
+    });
+
+    if (!workSpace) {
+      res.status(404).send({
+        "message":"WorkSpace is Missing"
+      })
+    }
+
+    res.status(200).send({ workSpace: workSpace });
 
 
   } catch (err) {
