@@ -31,6 +31,7 @@ router.post("/", async (req: Request, res: Response) => {
       res.status(400).send({
         "message":"User Not Found"
       });
+      return;
     }
 
     const newProfile = await db.user.create({
@@ -62,21 +63,27 @@ router.patch("/authority", async (req: Request, res: Response) => {
 
     if (!user) {
       res.status(401).send({ "message": "Unauthorized" });
+      return;
     }
 
     if (!targetUserId) {
-      res.status(400).send({"message": "Target UserId is Missing"});
+      res.status(400).send({ "message": "Target UserId is Missing" });
+      return;
     }
 
     if (!workSpaceId) {
       res.status(400).send({ "message": "WorkSpaceId is Missing" });
+      return;
     }
 
     if (!targetAuthority) {
       res.status(400).send({ "message": "target Authority is Missing" });
+      return;
     }
 
-    //TODO:ここに権限変更のコードを書く
+    //TODO:権限がADMINまたはMODERATORのみしか変更できないようにする
+
+
     await db.userWorkSpace.update({
       where: {
         userId_workSpaceId: {
@@ -106,8 +113,9 @@ router.patch("/authority", async (req: Request, res: Response) => {
 
     if (!workSpace) {
       res.status(404).send({
-        "message":"WorkSpace is Missing"
-      })
+        "message": "WorkSpace is Missing"
+      });
+      return;
     }
 
     res.status(200).send({ workSpace: workSpace });

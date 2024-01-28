@@ -1,6 +1,7 @@
 import {
   Route, Routes,
 } from "react-router-dom";
+import InvitePage from "./pages/InvitePage";
 import TopPage from "./pages/TopPage";
 import WorkSpace from "./pages/WorkSpace";
 import SignInPage from "./pages/auth/SignInPage";
@@ -15,6 +16,7 @@ function App() {
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/workspace/:workspaceId" element={<WorkSpace />} />
+        <Route path="/invite/:inviteCode" element={<InvitePage />} />
       </Routes>
       <ModalProvider />
     </>

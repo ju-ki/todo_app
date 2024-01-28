@@ -68,9 +68,9 @@ model Task {
   label TaskLabel @default(OPTIONAL)
   workSpaceId String
   workSpace WorkSpace @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
-  userAssignmentId String
+  // userAssignmentId String
   taskAssignments TaskAssignments[]
-  notificationId String
+  notificationId String?
   notifications Notification[]
   dueDate DateTime
   createdAt DateTime @default(now())

@@ -55,12 +55,14 @@ router.get("/details", async (req: Request, res: Response) => {
       res.status(401).send({
         "message": "Unauthorized"
       });
+      return;
     }
 
     if (!workSpaceId) {
       res.status(404).send({
         "message": "WorkSpaceId is Missing"
       });
+      return;
     }
 
 
@@ -83,6 +85,7 @@ router.get("/details", async (req: Request, res: Response) => {
       res.status(404).send({
         "message":"WorkSpace is Missing"
       })
+      return;
     }
 
     res.status(200).send({ workSpace:workSpace});
@@ -110,6 +113,7 @@ router.post("/", async (req: Request, res: Response) => {
       res.status(400).send({
         "message": "User Not Found"
       });
+      return;
     }
 
     const newWorkspace = await db.workSpace.create({
@@ -146,13 +150,15 @@ router.patch("/invite", async (req: Request, res: Response) => {
     if (!user) {
       res.status(401).send({
         "message": "Unauthorized"
-      })
+      });
+      return;
     }
 
     if (!workSpaceId) {
       res.status(404).send({
         "message": "WorkSpaceId is Missing"
-      })
+      });
+      return;
     }
 
     const newWorkSpace = await db.workSpace.update({
@@ -175,7 +181,7 @@ router.patch("/invite", async (req: Request, res: Response) => {
 /**
  * 招待コードでアクセスしてメンバーに加える
  */
-router.post("/invite/:inviteCode", async (req: Request, res: Response) => {
+router.patch("/invite/:inviteCode", async (req: Request, res: Response) => {
   try {
 
     const db = new PrismaClient();
@@ -204,6 +210,26 @@ router.post("/invite/:inviteCode", async (req: Request, res: Response) => {
     if (!workSpace) {
       res.status(404).send({
         "message": "WorkSpace Not Found"
+      })
+      return;
+    }
+
+    //既にワークスペース内にいるならそのワークスペースを返す
+    const existingWorkSpace = await db.workSpace.findFirst({
+      where: {
+        inviteCode: inviteCode,
+        userWorkSpaces: {
+          some: {
+            userId:userId
+          }
+        }
+      }
+    })
+
+    //TODO: エラーを出さずにそのワークスペースにリダイレクトしてもいいかも
+    if (existingWorkSpace) {
+      res.status(422).send({
+        "message": "You are already belong to this workspace"
       })
       return;
     }

@@ -7,6 +7,7 @@ const app:Express = express();
 const port: number = 3001;
 const userRouter = require("./routes/user");
 const workSpaceRouter = require("./routes/workspace");
+const taskRouter = require("./routes/task");
 
 
 // CORS設定を追加
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use("/users", userRouter);
 app.use("/workspaces", workSpaceRouter);
+app.use("/tasks", taskRouter);
 
 
 

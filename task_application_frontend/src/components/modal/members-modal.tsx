@@ -25,7 +25,7 @@ export default function MembersModal() {
   const inviteUrl = `${origin}/invite/${inviteCode}`;
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && isModalOpen) {
       const userInfo = data?.workSpace?.userWorkSpaces?.filter(
         (userWorkSpace: Record<string, any>) => (userWorkSpace.user.userId === userId),
       );
@@ -66,7 +66,6 @@ export default function MembersModal() {
 
   return (
     <div>
-      メンバー一覧
       <Dialog open={isModalOpen} onOpenChange={handleClose}>
         <DialogContent>
           <DialogHeader>

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useModal } from 'src/hook/use-modal';
 import axios from 'src/lib/axios';
+import TaskComp from '../task/TaskComp';
 
 export default function WorkSpaceComp() {
   const { userId } = useAuth();
@@ -30,13 +31,13 @@ export default function WorkSpaceComp() {
   }, [workspaceId, userId]);
   return (
     <div className="my-60 md:container md:mx-auto container mx-auto">
-      ワークスペースコンポーネント
       <button
         type="button"
         onClick={() => onOpen("members", { workSpace })}
       >
         メンバー一覧
       </button>
+      <TaskComp />
     </div>
   );
 }
