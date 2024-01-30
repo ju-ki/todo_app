@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useModal } from "src/hook/use-modal";
 import TaskItem from "./TaskItem";
 
-export default function TaskComp() {
+export default function TaskComp(workSpace:Record<string, any>) {
   const { onOpen } = useModal();
   const { workspaceId } = useParams();
 
@@ -12,7 +12,7 @@ export default function TaskComp() {
       <div>
         <button
           type="button"
-          onClick={() => onOpen("createTask", { workSpaceId: workspaceId })}
+          onClick={() => onOpen("createTask", { workSpaceId: workspaceId, workSpace })}
         >
           タスク追加
         </button>

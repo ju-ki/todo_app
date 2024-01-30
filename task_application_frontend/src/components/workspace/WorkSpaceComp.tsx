@@ -37,7 +37,7 @@ export default function WorkSpaceComp() {
       >
         メンバー一覧
       </button>
-      <TaskComp />
+      <TaskComp workSpace={workSpace} />
     </div>
   );
 }
