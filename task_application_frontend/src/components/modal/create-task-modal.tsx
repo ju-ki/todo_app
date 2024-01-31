@@ -2,12 +2,14 @@ import { useAuth } from '@clerk/clerk-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Command as CommandPrimitive } from "cmdk";
 import { X } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
+import {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import { useForm } from 'react-hook-form';
 import { useModal } from 'src/hook/use-modal';
 import axios from 'src/lib/axios';
 import { z } from 'zod';
-import { AvatarImage } from '../ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Calendar } from '../ui/calendar';
@@ -29,7 +31,7 @@ const formScheme = z.object({
     message: "タイトルは必須です",
   }),
   description: z.string(),
-  users: z.array(z.string()).default([]),
+  users: z.array(z.string()).nonempty("ユーザーは最低でも一人は必要です"),
   status: z.enum(["TODO", "WAITING", "DOING", "DONE"], {
     required_error: "ステータスタイプを指定してください ",
   }),
@@ -49,12 +51,8 @@ export default function CreateTaskModal() {
   const isModalOpen = isOpen && type === "createTask";
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<[string]>([]);
+  const [selected, setSelected] = useState<Record<string, any>[]>([]);
   const [inputValue, setInputValue] = useState("");
-
-  data?.workSpace?.workSpace?.userWorkSpaces?.map(() => (
-    console.log("test")
-  ));
 
   const form = useForm({
     resolver: zodResolver(formScheme),
@@ -68,9 +66,45 @@ export default function CreateTaskModal() {
     },
   });
 
+  const { watch, setValue } = form;
+
+  // selected配列を監視し、変更があるたびにフォームのusersフィールドを更新
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'users' && selected.length > 0) {
+      // user.userIdがstring型であることを確認または型アサーションを使用
+        const userIds = selected.map((user: Record<string, any>) => user.userId as string);
+        setValue('users', userIds);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, setValue, selected]);
+
+  // デフォルトでログインユーザーをタスクAssignmentに指定する
+  useEffect(() => {
+    if (isModalOpen && data && userId) {
+      const myUserObject = data?.workSpace?.workSpace?.userWorkSpaces?.filter(
+        (user: Record<string, any>) => user?.user?.userId === userId,
+      );
+
+      setSelected([myUserObject[0].user]);
+    }
+  }, [isModalOpen, data, userId]);
+
   const onSubmit = async (values: any) => {
+    console.log(values);
+
+    const userIds = selected.map((user) => ({ userId: user.userId }));
+    console.log(userIds);
+
+    // userIdsをvalues.usersに設定
+    const submissionValues = {
+      ...values,
+      users: userIds,
+    };
+
     try {
-      await axios.post("/tasks", { ...values, userId, ...data });
+      await axios.post("/tasks", { ...submissionValues, userId, ...data });
       handleClose();
     } catch (err) {
       console.log(err);
@@ -82,19 +116,21 @@ export default function CreateTaskModal() {
     onClose();
   };
 
-  // const handleUnselect = useCallback((framework: string) => {
-  //   setSelected((prev) => prev.filter((s) => s !== framework));
-  // }, []);
+  const handleUnselect = useCallback((framework: Record<string, any>) => {
+    setSelected((prev: Record<string, any>[]) => prev.filter((
+      s: Record<string, any>,
+    ) => s !== framework));
+  }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     const input = inputRef.current;
     if (input) {
       if (e.key === "Delete" || e.key === "Backspace") {
         if (input.value === "") {
-          setSelected((prev) => {
+          setSelected((prev:Record<string, any>[]) => {
             const newSelected = [...prev];
             newSelected.pop();
-            return newSelected as [string];
+            return newSelected;
           });
         }
       }
@@ -239,25 +275,32 @@ export default function CreateTaskModal() {
                       <Command onKeyDown={handleKeyDown} className="overflow-visible bg-transparent">
                         <div className="group border border-input px-3 py-2 text-sm ring-offset-background rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                           <div className="flex gap-1 flex-wrap">
-                            {selected?.map((user:any) => (
-                              <Badge key={user?.user?.id}>
+                            {selected?.map((user:Record<string, any>) => (
+                              <Badge key={user?.userId} className="bg-indigo-500">
                                 <button
-                                  className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                  className=" ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                                   type="button"
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
-                                      handleUnselect(user?.user?.id);
+                                      handleUnselect(user?.userId);
                                     }
                                   }}
                                   onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                   }}
-                                  onClick={() => handleUnselect(user?.user?.id)}
+                                  onClick={() => handleUnselect(user?.userId)}
                                 >
-                                  <AvatarImage src={user?.user?.imageUrl} />
-                                  {user?.user?.name}
-                                  <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                                  <div className="flex items-center">
+                                    <Avatar className="w-5 h-5">
+                                      <AvatarImage src={user?.imageUrl} />
+                                      <AvatarFallback>C</AvatarFallback>
+                                    </Avatar>
+                                    <div className="text-sm ms-3">
+                                      {user?.name}
+                                    </div>
+                                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground text-black" />
+                                  </div>
                                 </button>
                               </Badge>
                             ))}
@@ -280,21 +323,35 @@ export default function CreateTaskModal() {
                                   <CommandGroup>
                                     {data.workSpace
                               && data.workSpace?.workSpace?.userWorkSpaces?.map((
-                                user: any,
+                                user: Record<string, any>,
                               ) => (
                                 <CommandItem
-                                  key={user?.user?.name}
+                                  key={user?.user?.userId}
                                   onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                   }}
                                   onSelect={() => {
                                     setInputValue("");
-                                    setSelected((prev:string[]) => [...prev, user?.user?.id]);
+                                    setSelected((prev) => {
+                                      // すでに追加されているユーザーは追加しない
+                                      if (prev.some((p) => p.userId === user?.user?.userId)) {
+                                        return prev;
+                                      }
+                                      return [...prev, user?.user];
+                                    });
                                   }}
                                   className="cursor-pointer"
                                 >
-                                  {user?.user?.name}
+                                  <div className="flex items-center">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarImage src={user?.user?.imageUrl} />
+                                      <AvatarFallback>N</AvatarFallback>
+                                    </Avatar>
+                                    <div className="text-sm ms-3">
+                                      {user?.user?.name}
+                                    </div>
+                                  </div>
                                 </CommandItem>
                               ))}
                                   </CommandGroup>
