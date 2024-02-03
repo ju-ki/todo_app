@@ -1,11 +1,8 @@
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Command as CommandPrimitive } from "cmdk";
 import { X } from 'lucide-react';
-import {
-  useCallback, useEffect, useRef, useState,
-} from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { useModal } from 'src/hook/use-modal';
 import axios from 'src/lib/axios';
 import { z } from 'zod';
@@ -31,7 +28,11 @@ const formScheme = z.object({
     message: "タイトルは必須です",
   }),
   description: z.string(),
-  users: z.array(z.string()).nonempty("ユーザーは最低でも一人は必要です"),
+  users: z.array(z.object({
+    userId: z.string(),
+    name: z.string(),
+    imageUrl: z.string().optional(),
+  })).nonempty("ユーザーは最低でも一人は必要です"),
   status: z.enum(["TODO", "WAITING", "DOING", "DONE"], {
     required_error: "ステータスタイプを指定してください ",
   }),
@@ -43,68 +44,77 @@ const formScheme = z.object({
   }),
 });
 
+interface FormValue {
+  title: string;
+  description: string;
+  users: {
+    userId: string;
+    name?: string;
+    imageUrl?: string;
+  }[];
+  status: string;
+  label: string;
+  dueDate: Date;
+}
+
 export default function CreateTaskModal() {
   const { userId } = useAuth();
+  const { user } = useUser();
+
   const {
     isOpen, onClose, type, data,
   } = useModal();
   const isModalOpen = isOpen && type === "createTask";
-  const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Record<string, any>[]>([]);
-  const [inputValue, setInputValue] = useState("");
+  const defaultUser = user ? [{
+    userId: user.id,
+    name: user.fullName || "",
+    imageUrl: user.imageUrl || "",
+  }] : [];
 
-  const form = useForm({
+  const form = useForm<FormValue>({
     resolver: zodResolver(formScheme),
     defaultValues: {
       title: "",
       description: "",
-      users: [],
+      users: defaultUser,
       status: "TODO",
       label: "OPTIONAL",
       dueDate: new Date(),
     },
   });
+  const { control } = form;
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "users",
+  });
 
-  const { watch, setValue } = form;
+  // ユーザー選択の処理
+  const handleSelectUser = (userData: Record<string, any>) => {
+    // すでに選択されているユーザーは追加しない
+    if (!fields.some((field:Record<string, any>) => field.userId === userData.userId)) {
+      append({ userId: userData.userId, name: userData.name, imageUrl: userData.imageUrl });
+    }
+    setOpen(false); // 選択UIを閉じる
+  };
 
-  // selected配列を監視し、変更があるたびにフォームのusersフィールドを更新
-  useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      if (name === 'users' && selected.length > 0) {
-      // user.userIdがstring型であることを確認または型アサーションを使用
-        const userIds = selected.map((user: Record<string, any>) => user.userId as string);
-        setValue('users', userIds);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, setValue, selected]);
+  // ユーザー削除の処理
+  const handleUnselectUser = (index:number) => {
+    remove(index);
+  };
 
   // デフォルトでログインユーザーをタスクAssignmentに指定する
   useEffect(() => {
-    if (isModalOpen && data && userId) {
-      const myUserObject = data?.workSpace?.workSpace?.userWorkSpaces?.filter(
-        (user: Record<string, any>) => user?.user?.userId === userId,
-      );
-
-      setSelected([myUserObject[0].user]);
+    if (isModalOpen && user) {
+      append({ userId: user.id, name: user.fullName || "", imageUrl: user.imageUrl });
     }
-  }, [isModalOpen, data, userId]);
+  }, [isModalOpen, user]);
 
   const onSubmit = async (values: any) => {
     console.log(values);
 
-    const userIds = selected.map((user) => ({ userId: user.userId }));
-    console.log(userIds);
-
-    // userIdsをvalues.usersに設定
-    const submissionValues = {
-      ...values,
-      users: userIds,
-    };
-
     try {
-      await axios.post("/tasks", { ...submissionValues, userId, ...data });
+      await axios.post("/tasks", { ...values, userId, ...data });
       handleClose();
     } catch (err) {
       console.log(err);
@@ -116,30 +126,30 @@ export default function CreateTaskModal() {
     onClose();
   };
 
-  const handleUnselect = useCallback((framework: Record<string, any>) => {
-    setSelected((prev: Record<string, any>[]) => prev.filter((
-      s: Record<string, any>,
-    ) => s !== framework));
-  }, []);
+  // const handleUnselect = useCallback((framework: Record<string, any>) => {
+  //   setSelected((prev: Record<string, any>[]) => prev.filter((
+  //     s: Record<string, any>,
+  //   ) => s !== framework));
+  // }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-    const input = inputRef.current;
-    if (input) {
-      if (e.key === "Delete" || e.key === "Backspace") {
-        if (input.value === "") {
-          setSelected((prev:Record<string, any>[]) => {
-            const newSelected = [...prev];
-            newSelected.pop();
-            return newSelected;
-          });
-        }
-      }
-      // This is not a default behaviour of the <input /> field
-      if (e.key === "Escape") {
-        input.blur();
-      }
-    }
-  }, []);
+  // const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+  //   const input = inputRef.current;
+  //   if (input) {
+  //     if (e.key === "Delete" || e.key === "Backspace") {
+  //       if (input.value === "") {
+  //         setSelected((prev:Record<string, any>[]) => {
+  //           const newSelected = [...prev];
+  //           newSelected.pop();
+  //           return newSelected;
+  //         });
+  //       }
+  //     }
+  //     // This is not a default behaviour of the <input /> field
+  //     if (e.key === "Escape") {
+  //       input.blur();
+  //     }
+  //   }
+  // }, []);
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
@@ -272,47 +282,27 @@ export default function CreateTaskModal() {
                     <FormLabel className="text-base font-bold">ユーザー</FormLabel>
                     <FormMessage />
                     <FormControl>
-                      <Command onKeyDown={handleKeyDown} className="overflow-visible bg-transparent">
+                      <Command className="overflow-visible bg-transparent">
                         <div className="group border border-input px-3 py-2 text-sm ring-offset-background rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                           <div className="flex gap-1 flex-wrap">
-                            {selected?.map((user:Record<string, any>) => (
-                              <Badge key={user?.userId} className="bg-indigo-500">
+                            {fields.map((field: Record<string, any>, index:number) => (
+                              <Badge key={field.id} className="bg-indigo-500">
                                 <button
-                                  className=" ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                                   type="button"
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      handleUnselect(user?.userId);
-                                    }
-                                  }}
-                                  onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                  }}
-                                  onClick={() => handleUnselect(user?.userId)}
+                                  className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                  onClick={() => handleUnselectUser(index)}
                                 >
                                   <div className="flex items-center">
                                     <Avatar className="w-5 h-5">
-                                      <AvatarImage src={user?.imageUrl} />
+                                      <AvatarImage src={field?.imageUrl} />
                                       <AvatarFallback>C</AvatarFallback>
                                     </Avatar>
-                                    <div className="text-sm ms-3">
-                                      {user?.name}
-                                    </div>
+                                    <div className="text-sm ms-3">{field?.name}</div>
                                     <X className="h-3 w-3 text-muted-foreground hover:text-foreground text-black" />
                                   </div>
                                 </button>
                               </Badge>
                             ))}
-                            <CommandPrimitive.Input
-                              ref={inputRef}
-                              value={inputValue}
-                              onValueChange={setInputValue}
-                              onBlur={() => setOpen(false)}
-                              onFocus={() => setOpen(true)}
-                              placeholder="Select frameworks..."
-                              className="ml-2 bg-transparent outline-none placeholder:text-muted-foreground flex-1"
-                            />
                           </div>
                           <div
                             className="relative mt-2"
@@ -323,33 +313,26 @@ export default function CreateTaskModal() {
                                   <CommandGroup>
                                     {data.workSpace
                               && data.workSpace?.workSpace?.userWorkSpaces?.map((
-                                user: Record<string, any>,
+                                userData: Record<string, any>,
                               ) => (
                                 <CommandItem
-                                  key={user?.user?.userId}
+                                  key={userData?.user?.userId}
                                   onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
                                   }}
                                   onSelect={() => {
-                                    setInputValue("");
-                                    setSelected((prev) => {
-                                      // すでに追加されているユーザーは追加しない
-                                      if (prev.some((p) => p.userId === user?.user?.userId)) {
-                                        return prev;
-                                      }
-                                      return [...prev, user?.user];
-                                    });
+                                    handleSelectUser(userData?.user);
                                   }}
                                   className="cursor-pointer"
                                 >
                                   <div className="flex items-center">
                                     <Avatar className="h-8 w-8">
-                                      <AvatarImage src={user?.user?.imageUrl} />
+                                      <AvatarImage src={userData?.user?.imageUrl} />
                                       <AvatarFallback>N</AvatarFallback>
                                     </Avatar>
                                     <div className="text-sm ms-3">
-                                      {user?.user?.name}
+                                      {userData?.user?.name}
                                     </div>
                                   </div>
                                 </CommandItem>
@@ -362,6 +345,7 @@ export default function CreateTaskModal() {
                         </div>
                       </Command>
                     </FormControl>
+                    <Button type="button" onClick={() => setOpen(true)}>ユーザーを追加</Button>
                   </FormItem>
                 )}
               />
