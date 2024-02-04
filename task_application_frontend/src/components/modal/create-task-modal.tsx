@@ -126,30 +126,20 @@ export default function CreateTaskModal() {
     onClose();
   };
 
-  // const handleUnselect = useCallback((framework: Record<string, any>) => {
-  //   setSelected((prev: Record<string, any>[]) => prev.filter((
-  //     s: Record<string, any>,
-  //   ) => s !== framework));
-  // }, []);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const commandEl = document.getElementById("commandGroup"); // CommandGroupに一意のIDを割り当てる
+      if (commandEl && !commandEl.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
 
-  // const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-  //   const input = inputRef.current;
-  //   if (input) {
-  //     if (e.key === "Delete" || e.key === "Backspace") {
-  //       if (input.value === "") {
-  //         setSelected((prev:Record<string, any>[]) => {
-  //           const newSelected = [...prev];
-  //           newSelected.pop();
-  //           return newSelected;
-  //         });
-  //       }
-  //     }
-  //     // This is not a default behaviour of the <input /> field
-  //     if (e.key === "Escape") {
-  //       input.blur();
-  //     }
-  //   }
-  // }, []);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
@@ -279,33 +269,39 @@ export default function CreateTaskModal() {
                 name="users"
                 render={() => (
                   <FormItem className="mx-4 mt-3">
-                    <FormLabel className="text-base font-bold">ユーザー</FormLabel>
+                    <FormLabel className="text-base font-bold text-black">ユーザー</FormLabel>
                     <FormMessage />
                     <FormControl>
                       <Command className="overflow-visible bg-transparent">
                         <div className="group border border-input px-3 py-2 text-sm ring-offset-background rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                           <div className="flex gap-1 flex-wrap">
-                            {fields.map((field: Record<string, any>, index:number) => (
-                              <Badge key={field.id} className="bg-indigo-500">
-                                <button
-                                  type="button"
-                                  className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                  onClick={() => handleUnselectUser(index)}
-                                >
-                                  <div className="flex items-center">
-                                    <Avatar className="w-5 h-5">
-                                      <AvatarImage src={field?.imageUrl} />
-                                      <AvatarFallback>C</AvatarFallback>
-                                    </Avatar>
-                                    <div className="text-sm ms-3">{field?.name}</div>
-                                    <X className="h-3 w-3 text-muted-foreground hover:text-foreground text-black" />
-                                  </div>
-                                </button>
-                              </Badge>
-                            ))}
+                            {fields.length
+                              ? fields.map((field: Record<string, any>, index: number) => (
+                                <Badge key={field.id} className="bg-indigo-500">
+                                  <button
+                                    type="button"
+                                    className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                    onClick={() => handleUnselectUser(index)}
+                                  >
+                                    <div className="flex items-center">
+                                      <Avatar className="w-5 h-5">
+                                        <AvatarImage src={field?.imageUrl} />
+                                        <AvatarFallback>C</AvatarFallback>
+                                      </Avatar>
+                                      <div className="text-sm ms-3">{field?.name}</div>
+                                      <X className="h-3 w-3 text-muted-foreground hover:text-foreground text-black" />
+                                    </div>
+                                  </button>
+                                </Badge>
+                              )) : (
+                                <div className="text-slate-500">
+                                  ユーザーを選択してください
+                                </div>
+                              )}
                           </div>
                           <div
                             className="relative mt-2"
+                            id="commandGroup"
                           >
                             {open
                               ? (

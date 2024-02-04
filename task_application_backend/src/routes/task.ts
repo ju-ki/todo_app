@@ -20,12 +20,13 @@ router.post("/", async (req: Request, res: Response) => {
     const status = req.body.status as TaskStatus;
     const label = req.body.label as TaskLabel;
     const dueDate = req.body.dueDate as Date;
+    const users = req.body.users;
     const user = await clerkClient.users.getUser(userId);
+    console.log(req.body);
 
     if (!user) {
       res.status(401).send({ "message": "Unauthorized" });
     }
-    console.log(req.body);
 
     const newTask = await db.task.create({
       data: {
@@ -38,12 +39,13 @@ router.post("/", async (req: Request, res: Response) => {
       },
     })
 
-    await db.taskAssignments.create({
-      data: {
+    await db.taskAssignments.createMany({
+      data: users.map((userData:{userId:string, name:string, imageUrl:string}) => ({
         taskId: newTask.taskId,
-        userId:userId
-      }
+        userId:userData.userId
+      }))
     })
+
 
 
     res.status(200).send({ "task": newTask });
@@ -54,3 +56,30 @@ router.post("/", async (req: Request, res: Response) => {
 })
 
 module.exports = router;
+
+
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+    const workSpaceId = req.body.workSpaceId as string;
+    if (!workSpaceId) {
+      res.status(404).send({
+        "message": "WorkSpaceId is Missing"
+      });
+    }
+
+    const tasks = await db.task.findMany({
+      where: {
+        workSpaceId:workSpaceId
+      },
+      include: {
+        taskAssignments:true
+      }
+    })
+
+    res.status(200).send({ tasks: tasks });
+  } catch (err) {
+    console.log("[FETCHING_TASKS_ERROR]", err);
+    res.status(500).send({ error: err });
+  }
+})
