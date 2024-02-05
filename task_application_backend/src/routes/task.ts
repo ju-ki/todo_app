@@ -70,10 +70,10 @@ router.get("/", async (req: Request, res: Response) => {
 
     const tasks = await db.task.findMany({
       where: {
-        workSpaceId:workSpaceId
+        workSpaceId: workSpaceId
       },
       include: {
-        taskAssignments:true
+        taskAssignments: true
       }
     })
 
@@ -81,5 +81,49 @@ router.get("/", async (req: Request, res: Response) => {
   } catch (err) {
     console.log("[FETCHING_TASKS_ERROR]", err);
     res.status(500).send({ error: err });
+  }
+});
+
+router.get("/details", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+    const taskId = req.query.taskId as string;
+    const userId = req.query.userId as string;
+    const user = await clerkClient.users.getUser(userId);
+
+    if (!user) {
+      res.status(401).send({
+        "message": "Unauthorized"
+      });
+      return;
+    }
+
+    if (!taskId) {
+      res.status(404).send({
+        "message": "TaskId is Missing"
+      });
+      return;
+    }
+
+    const taskDetail = await db.task.findUnique({
+      where: {
+        taskId: taskId
+      },
+      include: {
+        taskAssignments: true,
+      }
+    });
+
+    if (!taskDetail) {
+      res.status(404).send({
+        "message":"Task is Missing"
+      })
+      return;
+    }
+
+    res.status(200).send({ task: taskDetail });
+  } catch (err) {
+    console.log("FETCHING_TASK_DETAIL:" + err);
+    res.status(500).send({error:err})
   }
 })

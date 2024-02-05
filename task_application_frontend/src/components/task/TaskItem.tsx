@@ -1,3 +1,5 @@
+import { useModal } from "src/hook/use-modal";
+
 interface TaskProps {
   taskId: string;
   title: string;
@@ -11,6 +13,7 @@ export default function TaskItem({
   label,
   dueDate,
 }: TaskProps) {
+  const { onOpen } = useModal();
   // 期日までの残り日数を計算
   const calculateDaysLeft = (date: Date) => {
     const today = new Date();
@@ -31,7 +34,14 @@ export default function TaskItem({
 
   const daysLeft = calculateDaysLeft(new Date(dueDate));
   return (
-    <div key={taskId} className="max-w-md p-4 bg-white rounded-lg border shadow-md">
+    <div
+      key={taskId}
+      className="max-w-md p-4 bg-white rounded-lg border shadow-md"
+      onClick={() => onOpen("task", { taskId })}
+      onKeyDown={() => onOpen("task", { taskId })}
+      role="button"
+      tabIndex={0}
+    >
       <div className="flex justify-between items-center mb-4">
         <h5 className="text-xl font-bold tracking-tight text-gray-900 overflow-hidden overflow-ellipsis">
           {title}

@@ -1,10 +1,11 @@
 import { create } from "zustand";
 
-export type ModalType = "createWorkSpace" | "members" | "createTask";
+export type ModalType = "createWorkSpace" | "members" | "createTask" | "task";
 
 interface ModalData {
   workSpace?: Record<string, any>;
   workSpaceId?: string;
+  taskId?: string;
 }
 
 interface ModalStore {

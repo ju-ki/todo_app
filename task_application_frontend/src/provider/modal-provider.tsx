@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import CreateTaskModal from "src/components/modal/create-task-modal";
 import CreateWorkSpaceModal from "src/components/modal/create-workspace-modal";
 import MembersModal from "src/components/modal/members-modal";
+import TaskModal from "src/components/modal/task-modal";
 
 export default function ModalProvider() {
   const [isMounted, setIsMounted] = useState(false);
@@ -19,6 +20,7 @@ export default function ModalProvider() {
       <CreateWorkSpaceModal />
       <MembersModal />
       <CreateTaskModal />
+      <TaskModal />
     </>
   );
 }
