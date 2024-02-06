@@ -54,10 +54,9 @@ enum TaskStatus {
 }
 
 enum TaskLabel {
-  REQUIRED
-  IMPORTANT
-  PRIORITY
-  OPTIONAL
+  HIGH
+  MEDIUM
+  LOW
 }
 
 model Task {
@@ -65,10 +64,9 @@ model Task {
   title String
   description String
   status TaskStatus @default(TODO)
-  label TaskLabel @default(OPTIONAL)
+  label TaskLabel @default(MEDIUM)
   workSpaceId String
   workSpace WorkSpace @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
-  // userAssignmentId String
   taskAssignments TaskAssignments[]
   notificationId String?
   notifications Notification[]

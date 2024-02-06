@@ -110,7 +110,11 @@ router.get("/details", async (req: Request, res: Response) => {
         taskId: taskId
       },
       include: {
-        taskAssignments: true,
+        taskAssignments: {
+          include: {
+            user:true
+          }
+        }
       }
     });
 

@@ -36,7 +36,7 @@ const formScheme = z.object({
   status: z.enum(["TODO", "WAITING", "DOING", "DONE"], {
     required_error: "ステータスタイプを指定してください ",
   }),
-  label: z.enum(["OPTIONAL", "IMPORTANT", "PRIORITY", "REQUIRED"], {
+  label: z.enum(["HIGH", "MEDIUM", "LOW"], {
     required_error: "優先度を指定してください",
   }),
   dueDate: z.date({
@@ -79,7 +79,7 @@ export default function CreateTaskModal() {
       description: "",
       users: defaultUser,
       status: "TODO",
-      label: "OPTIONAL",
+      label: "MEDIUM",
       dueDate: new Date(),
     },
   });
@@ -244,20 +244,16 @@ export default function CreateTaskModal() {
                         {...field}
                       >
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="OPTIONAL" id="label1" />
-                          <Label htmlFor="label1">任意</Label>
+                          <RadioGroupItem value="HIGH" id="label1" />
+                          <Label htmlFor="label1">高め</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="IMPORTANT" id="label2" />
-                          <Label htmlFor="label2">重要</Label>
+                          <RadioGroupItem value="MEDIUM" id="label2" />
+                          <Label htmlFor="label2">通常</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="REQUIRED" id="label3" />
-                          <Label htmlFor="label3">必須</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="PRIORITY" id="label4" />
-                          <Label htmlFor="label4">優先</Label>
+                          <RadioGroupItem value="LOW" id="label3" />
+                          <Label htmlFor="label3">低め</Label>
                         </div>
                       </RadioGroup>
                     </FormControl>
