@@ -7,13 +7,16 @@ interface TaskProps {
   dueDate: Date;
 }
 
-export default function TaskItem({
-  taskId,
-  title,
-  label,
-  dueDate,
-}: TaskProps) {
+interface TaskItemProps {
+  taskItems: TaskProps;
+  workSpace: Record<string, any>;
+}
+
+export default function TaskItem({ taskItems, workSpace }:TaskItemProps) {
   const { onOpen } = useModal();
+  const {
+    dueDate, taskId, title, label,
+  } = taskItems;
   // 期日までの残り日数を計算
   const calculateDaysLeft = (date: Date) => {
     const today = new Date();
@@ -37,8 +40,8 @@ export default function TaskItem({
     <div
       key={taskId}
       className="max-w-md p-4 bg-white rounded-lg border shadow-md"
-      onClick={() => onOpen("task", { taskId })}
-      onKeyDown={() => onOpen("task", { taskId })}
+      onClick={() => onOpen("task", { taskId, workSpace })}
+      onKeyDown={() => onOpen("task", { taskId, workSpace })}
       role="button"
       tabIndex={0}
     >

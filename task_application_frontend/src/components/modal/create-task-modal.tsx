@@ -94,6 +94,7 @@ export default function CreateTaskModal() {
     // すでに選択されているユーザーは追加しない
     if (!fields.some((field:Record<string, any>) => field.userId === userData.userId)) {
       append({ userId: userData.userId, name: userData.name, imageUrl: userData.imageUrl });
+      console.log(fields);
     }
     setOpen(false); // 選択UIを閉じる
   };

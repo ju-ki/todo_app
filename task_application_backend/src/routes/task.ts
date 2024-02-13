@@ -112,7 +112,7 @@ router.get("/details", async (req: Request, res: Response) => {
       include: {
         taskAssignments: {
           include: {
-            user:true
+            user: true
           }
         }
       }
@@ -120,7 +120,7 @@ router.get("/details", async (req: Request, res: Response) => {
 
     if (!taskDetail) {
       res.status(404).send({
-        "message":"Task is Missing"
+        "message": "Task is Missing"
       })
       return;
     }
@@ -128,6 +128,48 @@ router.get("/details", async (req: Request, res: Response) => {
     res.status(200).send({ task: taskDetail });
   } catch (err) {
     console.log("FETCHING_TASK_DETAIL:" + err);
-    res.status(500).send({error:err})
+    res.status(500).send({ error: err })
+  }
+});
+
+router.patch("/", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+
+    const title = req.body.title as string;
+    const userId = req.body.userId as string;
+    const taskId = req.body.taskId as string;
+    const description = req.body.description;
+    const status = req.body.status;
+    const label = req.body.label;
+    const dueDate = req.body.dueDate;
+
+    const user = await clerkClient.users.getUser(userId);
+
+    if (!user) {
+      res.status(401).send({ "message": "Unauthorized" });
+    }
+
+    if (!taskId) {
+      res.status(400).send({ "message": "TaskId is Missing" });
+    }
+
+    const newTask = await db.task.update({
+      where: {
+        taskId:taskId
+      },
+      data: {
+        title,
+        description,
+        status,
+        label,
+        dueDate
+      }
+    })
+
+    res.status(200).send({task:newTask})
+  } catch (err) {
+    console.log("UPDATE_TASK_ERROR:", err);
+    res.status(500).send({ message: "Internal Server Error" });
   }
 })

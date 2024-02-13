@@ -52,7 +52,7 @@ export default function TaskComp(workSpace:Record<string, any>) {
           <div>未着手</div>
           {tasksClassifiedByStatus.TODO.map((task:TaskProps) => (
             <div key={task.taskId}>
-              <TaskItem {...task} />
+              <TaskItem taskItems={task} workSpace={workSpace} />
             </div>
           ))}
         </div>
@@ -60,7 +60,7 @@ export default function TaskComp(workSpace:Record<string, any>) {
           <div>保留</div>
           {tasksClassifiedByStatus.WAITING.map((task:TaskProps) => (
             <div key={task.taskId}>
-              <TaskItem {...task} />
+              <TaskItem taskItems={task} workSpace={workSpace} />
             </div>
           ))}
         </div>
@@ -68,7 +68,7 @@ export default function TaskComp(workSpace:Record<string, any>) {
           <div>進行中</div>
           {tasksClassifiedByStatus.DOING.map((task:TaskProps) => (
             <div key={task.taskId}>
-              <TaskItem {...task} />
+              <TaskItem taskItems={task} workSpace={workSpace} />
             </div>
           ))}
         </div>
@@ -76,7 +76,7 @@ export default function TaskComp(workSpace:Record<string, any>) {
           <div>完了</div>
           {tasksClassifiedByStatus.DONE.map((task:TaskProps) => (
             <div key={task.taskId}>
-              <TaskItem {...task} />
+              <TaskItem taskItems={task} workSpace={workSpace} />
             </div>
           ))}
         </div>

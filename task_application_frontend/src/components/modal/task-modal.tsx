@@ -43,8 +43,8 @@ interface FormValue {
   description: string;
   users: {
     userId: string;
-    name?: string;
-    imageUrl?: string;
+    name: string;
+    imageUrl: string;
   }[];
   status: string;
   label: string;
@@ -82,6 +82,7 @@ export default function TaskModal() {
   const handleClose = () => {
     onClose();
   };
+
   const [task, setTask] = useState<TaskProps>();
   const [isEdit, setIsEdit] = useState<Boolean>(false);
   const [open, setOpen] = useState<Boolean>(false);
@@ -122,7 +123,6 @@ export default function TaskModal() {
             taskId: data.taskId,
           },
         });
-        console.log(response.data.task);
         setTask(response.data.task);
       } catch (err) {
         console.log(err);
@@ -133,6 +133,24 @@ export default function TaskModal() {
       fetchTaskDetail();
     }
   }, [data]);
+
+  // taskがセット後formの中身をリセット
+  useEffect(() => {
+    const userData: Record<string, any>[] = [];
+    task?.taskAssignments.forEach((elem: Record<string, any>) => {
+      userData.push(elem.user);
+    });
+    form.reset({
+      title: task?.title,
+      description: task?.description || "",
+      users: userData,
+      status: task?.status,
+      label: task?.label,
+      dueDate: new Date(task?.dueDate || "") || new Date(),
+    });
+
+    console.log(userData);
+  }, [task]);
 
   function formatDate(date: Date): string {
     const year = date.getFullYear();
@@ -150,20 +168,41 @@ export default function TaskModal() {
   // ユーザー選択の処理
   const handleSelectUser = (userData: Record<string, any>) => {
     // すでに選択されているユーザーは追加しない
-    if (!fields.some((field:Record<string, any>) => field.userId === userData.userId)) {
+    if (!fields.some((field: Record<string, any>) => field.userId === userData.userId)) {
       append({ userId: userData.userId, name: userData.name, imageUrl: userData.imageUrl });
     }
     setOpen(false); // 選択UIを閉じる
   };
 
+  useEffect(() => {
+    console.log(fields);
+  }, [fields]);
+
   // ユーザー削除の処理
-  const handleUnselectUser = (index:number) => {
+  const handleUnselectUser = (index: number) => {
     remove(index);
   };
 
+  // ユーザー追加の欄からカーソルを外した際の処理
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const commandEl = document.getElementById("commandGroup"); // CommandGroupに一意のIDを割り当てる
+      if (commandEl && !commandEl.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const onSubmit = async (values: any) => {
     try {
-      await axios.post("/tasks", { ...values, userId, ...data });
+      const newTask = await axios.patch("/tasks", { ...values, userId, ...data });
+      console.log(newTask);
     } catch (err) {
       console.log(err);
     }
@@ -323,10 +362,10 @@ export default function TaskModal() {
                                             >
                                               <div className="flex items-center">
                                                 <Avatar className="w-5 h-5">
-                                                  <AvatarImage src={field?.imageUrl} />
+                                                  <AvatarImage src={field?.user ? field?.user?.imageUrl : ""} />
                                                   <AvatarFallback>C</AvatarFallback>
                                                 </Avatar>
-                                                <div className="text-sm ms-3">{field?.name}</div>
+                                                <div className="text-sm ms-3">{field?.user ? field?.user?.name : ""}</div>
                                                 <X className="h-3 w-3 text-muted-foreground hover:text-foreground text-black" />
                                               </div>
                                             </button>
@@ -350,7 +389,7 @@ export default function TaskModal() {
                                 userData: Record<string, any>,
                               ) => (
                                 <CommandItem
-                                  key={userData?.user?.userId}
+                                  key={userData?.user ? userData?.user?.userId : ""}
                                   onMouseDown={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
@@ -362,11 +401,11 @@ export default function TaskModal() {
                                 >
                                   <div className="flex items-center">
                                     <Avatar className="h-8 w-8">
-                                      <AvatarImage src={userData?.user?.imageUrl} />
+                                      <AvatarImage src={userData?.user?.imageUrl ? userData?.user?.imageUrl : ""} />
                                       <AvatarFallback>N</AvatarFallback>
                                     </Avatar>
                                     <div className="text-sm ms-3">
-                                      {userData?.user?.name}
+                                      {userData?.user?.name ? userData?.user?.name : ""}
                                     </div>
                                   </div>
                                 </CommandItem>
@@ -389,7 +428,8 @@ export default function TaskModal() {
                           name="dueDate"
                           render={({ field }) => (
                             <FormItem className="mx-4 mt-3">
-                              <FormLabel className="text-base font-bold">期日</FormLabel>
+                              <FormLabel className="text-base font-bold text-black">期日</FormLabel>
+                              <FormMessage />
                               <FormControl>
                                 <Calendar
                                   selected={new Date(field.value)}
