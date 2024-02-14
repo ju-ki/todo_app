@@ -103,6 +103,7 @@ export default function TaskModal() {
       dueDate: new Date(),
     },
   });
+
   const statusStyles: { [key: string]: string } = {
     WAITING: "bg-gray-400",
     TODO: "bg-orange-300",
@@ -148,8 +149,6 @@ export default function TaskModal() {
       label: task?.label,
       dueDate: new Date(task?.dueDate || "") || new Date(),
     });
-
-    console.log(userData);
   }, [task]);
 
   function formatDate(date: Date): string {
@@ -159,7 +158,7 @@ export default function TaskModal() {
     return `${year}/${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}`;
   }
 
-  const { control } = form;
+  const { control, formState: { isSubmitting } } = form;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "users",
@@ -174,9 +173,9 @@ export default function TaskModal() {
     setOpen(false); // 選択UIを閉じる
   };
 
-  useEffect(() => {
-    console.log(fields);
-  }, [fields]);
+  // useEffect(() => {
+  //   console.log(fields);
+  // }, [fields]);
 
   // ユーザー削除の処理
   const handleUnselectUser = (index: number) => {
@@ -202,7 +201,8 @@ export default function TaskModal() {
   const onSubmit = async (values: any) => {
     try {
       const newTask = await axios.patch("/tasks", { ...values, userId, ...data });
-      console.log(newTask);
+      setTask(newTask.data.task);
+      setIsEdit(false);
     } catch (err) {
       console.log(err);
     }
@@ -217,174 +217,178 @@ export default function TaskModal() {
               <DialogTitle className="text-5xl font-semibold">{task?.title}</DialogTitle>
               <Button
                 className="ms-7"
+                disabled={isSubmitting}
                 onClick={() => setIsEdit((prev) => !prev)}
               >
-                編集
+                {isEdit ? "編集をやめる" : "編集"}
               </Button>
             </div>
           </DialogHeader>
-          <ScrollArea className="h-5/6">
-            {isEdit ? (
-              <div>
-                <div className="mt-4">
-                  <Form {...form}>
-                    <form
-                      className=""
-                      onSubmit={form.handleSubmit(onSubmit)}
-                    >
-                      <ScrollArea className="h-72 w-full rounded-md border">
-                        <FormField
-                          control={form.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem
-                              className="mx-4 mt-3"
-                            >
-                              <FormLabel className="text-black text-base font-bold">
-                                タイトル
-                                {' '}
-                                <span className="text-red-500 mx-1">*</span>
-                              </FormLabel>
-                              <FormMessage />
-                              <FormControl>
-                                <Input
-                                  type="text"
-                                  placeholder="タイトルを入力してください"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="description"
-                          render={({ field }) => (
-                            <FormItem className="mx-4 mt-3">
-                              <FormLabel className="text-base font-bold">内容</FormLabel>
-                              <FormMessage />
-                              <FormControl>
-                                <Textarea
-                                  placeholder="TODO"
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="status"
-                          render={({ field }) => (
-                            <FormItem className="mx-4 mt-3">
-                              <FormLabel className="text-base font-bold">ステータス</FormLabel>
-                              <FormMessage />
-                              <FormControl>
-                                <RadioGroup
-                                  className="flex"
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                  {...field}
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="TODO" id="status1" />
-                                    <Label htmlFor="status1">未着手</Label>
+          {isEdit ? (
+            <div>
+              <div className="mt-4">
+                <Form {...form}>
+                  <form
+                    className=""
+                    onSubmit={form.handleSubmit(onSubmit)}
+                  >
+                    <ScrollArea className="h-72 w-full rounded-md border">
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem
+                            className="mx-4 mt-3"
+                          >
+                            <FormLabel className="text-black text-base font-bold">
+                              タイトル
+                              {' '}
+                              <span className="text-red-500 mx-1">*</span>
+                            </FormLabel>
+                            <FormMessage />
+                            <FormControl>
+                              <Input
+                                type="text"
+                                disabled={isSubmitting}
+                                placeholder="タイトルを入力してください"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem className="mx-4 mt-3">
+                            <FormLabel className="text-base font-bold">内容</FormLabel>
+                            <FormMessage />
+                            <FormControl>
+                              <Textarea
+                                disabled={isSubmitting}
+                                placeholder="TODO"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem className="mx-4 mt-3">
+                            <FormLabel className="text-base font-bold">ステータス</FormLabel>
+                            <FormMessage />
+                            <FormControl>
+                              <RadioGroup
+                                className="flex"
+                                disabled={isSubmitting}
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                {...field}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="TODO" id="status1" />
+                                  <Label htmlFor="status1">未着手</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="WAITING" id="status2" />
+                                  <Label htmlFor="status2">保留中</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="DOING" id="status3" />
+                                  <Label htmlFor="status3">進行中</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="DONE" id="status4" />
+                                  <Label htmlFor="status4">完了</Label>
+                                </div>
+                              </RadioGroup>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="label"
+                        render={({ field }) => (
+                          <FormItem className="mx-4 mt-3">
+                            <FormLabel className="text-base font-bold">優先度</FormLabel>
+                            <FormMessage />
+                            <FormControl>
+                              <RadioGroup
+                                disabled={isSubmitting}
+                                className="flex"
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                {...field}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="HIGH" id="label1" />
+                                  <Label htmlFor="label1">高め</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="MEDIUM" id="label2" />
+                                  <Label htmlFor="label2">通常</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="LOW" id="label3" />
+                                  <Label htmlFor="label3">低め</Label>
+                                </div>
+                              </RadioGroup>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="users"
+                        render={() => (
+                          <FormItem className="mx-4 mt-3">
+                            <FormLabel className="text-base font-bold text-black">ユーザー</FormLabel>
+                            <FormMessage />
+                            <FormControl>
+                              <Command className="overflow-visible bg-transparent">
+                                <div className="group border border-input px-3 py-2 text-sm ring-offset-background rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                                  <div className="flex gap-1 flex-wrap">
+                                    {fields.length
+                                      ? fields.map((
+                                        field: Record<string, any>,
+                                        index: number,
+                                      ) => (
+                                        <Badge key={field.id} className="bg-indigo-500">
+                                          <button
+                                            type="button"
+                                            className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                                            onClick={() => handleUnselectUser(index)}
+                                          >
+                                            <div className="flex items-center">
+                                              <Avatar className="w-5 h-5">
+                                                <AvatarImage src={field?.user ? field?.user?.imageUrl : ""} />
+                                                <AvatarFallback>C</AvatarFallback>
+                                              </Avatar>
+                                              <div className="text-sm ms-3">{field?.user ? field?.user?.name : ""}</div>
+                                              <X className="h-3 w-3 text-muted-foreground hover:text-foreground text-black" />
+                                            </div>
+                                          </button>
+                                        </Badge>
+                                      )) : (
+                                        <div className="text-slate-500">
+                                          ユーザーを選択してください
+                                        </div>
+                                      )}
                                   </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="WAITING" id="status2" />
-                                    <Label htmlFor="status2">保留中</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="DOING" id="status3" />
-                                    <Label htmlFor="status3">進行中</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="DONE" id="status4" />
-                                    <Label htmlFor="status4">完了</Label>
-                                  </div>
-                                </RadioGroup>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="label"
-                          render={({ field }) => (
-                            <FormItem className="mx-4 mt-3">
-                              <FormLabel className="text-base font-bold">優先度</FormLabel>
-                              <FormMessage />
-                              <FormControl>
-                                <RadioGroup
-                                  className="flex"
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                  {...field}
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="HIGH" id="label1" />
-                                    <Label htmlFor="label1">高め</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="MEDIUM" id="label2" />
-                                    <Label htmlFor="label2">通常</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="LOW" id="label3" />
-                                    <Label htmlFor="label3">低め</Label>
-                                  </div>
-                                </RadioGroup>
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="users"
-                          render={() => (
-                            <FormItem className="mx-4 mt-3">
-                              <FormLabel className="text-base font-bold text-black">ユーザー</FormLabel>
-                              <FormMessage />
-                              <FormControl>
-                                <Command className="overflow-visible bg-transparent">
-                                  <div className="group border border-input px-3 py-2 text-sm ring-offset-background rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                                    <div className="flex gap-1 flex-wrap">
-                                      {fields.length
-                                        ? fields.map((
-                                          field: Record<string, any>,
-                                          index: number,
-                                        ) => (
-                                          <Badge key={field.id} className="bg-indigo-500">
-                                            <button
-                                              type="button"
-                                              className="ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                                              onClick={() => handleUnselectUser(index)}
-                                            >
-                                              <div className="flex items-center">
-                                                <Avatar className="w-5 h-5">
-                                                  <AvatarImage src={field?.user ? field?.user?.imageUrl : ""} />
-                                                  <AvatarFallback>C</AvatarFallback>
-                                                </Avatar>
-                                                <div className="text-sm ms-3">{field?.user ? field?.user?.name : ""}</div>
-                                                <X className="h-3 w-3 text-muted-foreground hover:text-foreground text-black" />
-                                              </div>
-                                            </button>
-                                          </Badge>
-                                        )) : (
-                                          <div className="text-slate-500">
-                                            ユーザーを選択してください
-                                          </div>
-                                        )}
-                                    </div>
-                                    <div
-                                      className="relative mt-2"
-                                      id="commandGroup"
-                                    >
-                                      {open
-                                        ? (
-                                          <div className="absolute w-full z-10 top-0 rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
-                                            <CommandGroup>
-                                              {data.workSpace
+                                  <div
+                                    className="relative mt-2"
+                                    id="commandGroup"
+                                  >
+                                    {open
+                                      ? (
+                                        <div className="absolute w-full z-10 top-0 rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+                                          <CommandGroup>
+                                            {data.workSpace
                               && data.workSpace?.workSpace?.userWorkSpaces?.map((
                                 userData: Record<string, any>,
                               ) => (
@@ -410,50 +414,50 @@ export default function TaskModal() {
                                   </div>
                                 </CommandItem>
                               ))}
-                                            </CommandGroup>
-                                          </div>
-                                        )
-                                        : null}
-                                    </div>
+                                          </CommandGroup>
+                                        </div>
+                                      )
+                                      : null}
                                   </div>
-                                </Command>
-                              </FormControl>
-                              <Button type="button" onClick={() => setOpen(true)}>ユーザーを追加</Button>
-                            </FormItem>
-                          )}
-                        />
+                                </div>
+                              </Command>
+                            </FormControl>
+                            <Button type="button" disabled={isSubmitting} onClick={() => setOpen(true)}>ユーザーを追加</Button>
+                          </FormItem>
+                        )}
+                      />
 
-                        <FormField
-                          control={form.control}
-                          name="dueDate"
-                          render={({ field }) => (
-                            <FormItem className="mx-4 mt-3">
-                              <FormLabel className="text-base font-bold text-black">期日</FormLabel>
-                              <FormMessage />
-                              <FormControl>
-                                <Calendar
-                                  selected={new Date(field.value)}
-                                  onDayClick={field.onChange}
-                                  mode="single"
-                                  disabled={(date:Date) => date <= new Date()}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </ScrollArea>
-
-                      <DialogFooter>
-                        <Button className="mt-4" variant="primary">
-                          作成
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </div>
+                      <FormField
+                        control={form.control}
+                        name="dueDate"
+                        render={({ field }) => (
+                          <FormItem className="mx-4 mt-3">
+                            <FormLabel className="text-base font-bold text-black">期日</FormLabel>
+                            <FormMessage />
+                            <FormControl>
+                              <Calendar
+                                selected={new Date(field.value)}
+                                onDayClick={field.onChange}
+                                mode="single"
+                                disabled={(date:Date) => date <= new Date()}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </ScrollArea>
+                    <DialogFooter>
+                      <Button className="mt-4" disabled={isSubmitting} variant="primary">
+                        作成
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
               </div>
-            )
-              : (
+            </div>
+          )
+            : (
+              <ScrollArea className="h-5/6">
                 <div>
                   {/* 説明 */}
                   <div className="mt-4">
@@ -519,8 +523,8 @@ export default function TaskModal() {
                     </div>
                   </div>
                 </div>
-              )}
-          </ScrollArea>
+              </ScrollArea>
+            )}
         </DialogContent>
       </Dialog>
     </div>

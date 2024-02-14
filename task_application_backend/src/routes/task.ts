@@ -164,6 +164,13 @@ router.patch("/", async (req: Request, res: Response) => {
         status,
         label,
         dueDate
+      },
+      include: {
+        taskAssignments: {
+          include: {
+            user:true
+          }
+        }
       }
     })
 
