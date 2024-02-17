@@ -57,7 +57,7 @@ interface FormValue {
   dueDate: Date;
 }
 
-export default function CreateTaskModal() {
+export default function CreateTaskModal({ triggerRefresh }: { triggerRefresh: () => void }) {
   const { userId } = useAuth();
   const { user } = useUser();
 
@@ -112,11 +112,10 @@ export default function CreateTaskModal() {
   }, [isModalOpen, user]);
 
   const onSubmit = async (values: any) => {
-    console.log(values);
-
     try {
       await axios.post("/tasks", { ...values, userId, ...data });
       handleClose();
+      triggerRefresh();
     } catch (err) {
       console.log(err);
     }

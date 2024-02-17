@@ -22,7 +22,6 @@ router.post("/", async (req: Request, res: Response) => {
     const dueDate = req.body.dueDate as Date;
     const users = req.body.users;
     const user = await clerkClient.users.getUser(userId);
-    console.log(req.body);
 
     if (!user) {
       res.status(401).send({ "message": "Unauthorized" });
@@ -45,6 +44,13 @@ router.post("/", async (req: Request, res: Response) => {
         userId:userData.userId
       }))
     })
+
+    // await db.notification.create({
+    //   data: {
+    //     taskId: newTask.taskId,
+    //     userId: userId
+    //   }
+    // });
 
 
 
@@ -156,7 +162,7 @@ router.patch("/", async (req: Request, res: Response) => {
 
     const newTask = await db.task.update({
       where: {
-        taskId:taskId
+        taskId: taskId
       },
       data: {
         title,
@@ -168,15 +174,50 @@ router.patch("/", async (req: Request, res: Response) => {
       include: {
         taskAssignments: {
           include: {
-            user:true
+            user: true
           }
         }
       }
     })
 
-    res.status(200).send({task:newTask})
+    res.status(200).send({ task: newTask })
   } catch (err) {
     console.log("UPDATE_TASK_ERROR:", err);
     res.status(500).send({ message: "Internal Server Error" });
   }
-})
+});
+
+router.delete("/", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+    const userId = req.query.userId as string;
+    const taskId = req.query.taskId as string;
+    const user = await clerkClient.users.getUser(userId);
+
+    if (!user) {
+      res.status(401).send({ "message": "Unauthorized" });
+    }
+
+    if (!taskId) {
+      res.status(400).send({ "message": "TaskId is Missing" });
+    }
+
+    const deletedTask = await db.task.delete({
+      where: {
+        taskId: taskId
+      },
+      include: {
+        taskAssignments: {
+          include: {
+            user: true
+          }
+        }
+      }
+    })
+
+    res.status(200).send({ task: deletedTask })
+  } catch (err) {
+    console.log("FETCH_DELETE_ERROR:", err);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});

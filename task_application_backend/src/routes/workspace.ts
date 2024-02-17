@@ -2,8 +2,9 @@ import {v4 as uuidv4} from "uuid";
 import express from "express";
 import type { IRouter, Request, Response } from "express";
 import { Clerk } from "@clerk/backend";
-import {MemberRole, PrismaClient } from "@prisma/client";
+import { MemberRole, PrismaClient } from "@prisma/client";
 
+const notificationService = require("../service/notification/notification");
 const router: IRouter = express.Router();
 const secretKey = process.env.CLERK_SECRET_KEY;
 const clerkClient = Clerk({ secretKey: secretKey });
@@ -24,6 +25,11 @@ router.get("/", async (req: Request, res: Response) => {
       return;
     }
 
+    //そのユーザーが抱えているタスクをワークスペース全体から取得してくる
+      //そのタスクが期日三日前かつstatusがTODOまたはDOINGならnotificationテーブルにデータを作成する
+      //notificationデータの作成日が5日前かつisReadがtrueでないnotificationデータを返す
+    notificationService.fetchNotifications(userId);
+
     const workSpaces = await db.workSpace.findMany({
       where: {
         userWorkSpaces: {
@@ -33,7 +39,6 @@ router.get("/", async (req: Request, res: Response) => {
         }
       }
     });
-    console.log(workSpaces);
     res.status(200).send({ workSpaces: workSpaces });
   } catch (err) {
     console.log("[FETCHING_WORKSPACE_ERROR]", err);

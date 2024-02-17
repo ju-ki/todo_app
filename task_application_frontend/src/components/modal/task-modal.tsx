@@ -72,7 +72,7 @@ const formScheme = z.object({
   }),
 });
 
-export default function TaskModal() {
+export default function TaskModal({ triggerRefresh }:{ triggerRefresh: () => void }) {
   const { userId } = useAuth();
   const { user } = useUser();
   const {
@@ -173,10 +173,6 @@ export default function TaskModal() {
     setOpen(false); // 選択UIを閉じる
   };
 
-  // useEffect(() => {
-  //   console.log(fields);
-  // }, [fields]);
-
   // ユーザー削除の処理
   const handleUnselectUser = (index: number) => {
     remove(index);
@@ -198,10 +194,28 @@ export default function TaskModal() {
     };
   }, []);
 
+  const onClickDelete = async () => {
+    if (window.confirm("タスクを削除しますか?\n 削除したタスクは戻せません。")) {
+      try {
+        await axios.delete("/tasks", {
+          params: {
+            userId,
+            taskId: data.taskId as string,
+          },
+        });
+        triggerRefresh();
+        handleClose();
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  };
+
   const onSubmit = async (values: any) => {
     try {
       const newTask = await axios.patch("/tasks", { ...values, userId, ...data });
       setTask(newTask.data.task);
+      triggerRefresh();
       setIsEdit(false);
     } catch (err) {
       console.log(err);
@@ -221,6 +235,14 @@ export default function TaskModal() {
                 onClick={() => setIsEdit((prev) => !prev)}
               >
                 {isEdit ? "編集をやめる" : "編集"}
+              </Button>
+              <Button
+                className="ms-7"
+                variant="destructive"
+                onClick={() => onClickDelete()}
+                disabled={isSubmitting}
+              >
+                削除
               </Button>
             </div>
           </DialogHeader>
@@ -448,7 +470,7 @@ export default function TaskModal() {
                     </ScrollArea>
                     <DialogFooter>
                       <Button className="mt-4" disabled={isSubmitting} variant="primary">
-                        作成
+                        更新
                       </Button>
                     </DialogFooter>
                   </form>

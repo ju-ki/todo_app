@@ -1,11 +1,13 @@
 import express from "express";
 import type { IRouter, Request, Response } from "express";
 import { Clerk } from "@clerk/backend";
-import {PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+
 
 const router: IRouter = express.Router();
 const secretKey = process.env.CLERK_SECRET_KEY;
 const clerkClient = Clerk({ secretKey: secretKey });
+
 
 
 router.post("/", async (req: Request, res: Response) => {
