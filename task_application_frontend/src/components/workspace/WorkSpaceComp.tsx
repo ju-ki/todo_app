@@ -7,13 +7,24 @@ import axios from 'src/lib/axios';
 import CreateTaskModal from '../modal/create-task-modal';
 import TaskModal from '../modal/task-modal';
 import TaskComp from '../task/TaskComp';
+import { Button } from '../ui/button';
+
+type WorkSpaceProps = {
+  id: string;
+  title: string;
+  inviteCode: string;
+  tasks: Record<string, any>;
+  createdAt: Date;
+  updatedAt: Date;
+  userWorkSpaces: Record<string, any>;
+};
 
 export default function WorkSpaceComp() {
   const { userId } = useAuth();
   const { workspaceId } = useParams();
   const { refreshTasks, triggerRefresh } = useTaskRefresher();
   const { onOpen } = useModal();
-  const [workSpace, setWorkSpace] = useState({});
+  const [workSpace, setWorkSpace] = useState<WorkSpaceProps>();
 
   useEffect(() => {
     async function fetchWorkSpacesDetail() {
@@ -34,13 +45,27 @@ export default function WorkSpaceComp() {
     }
   }, [workspaceId, userId, refreshTasks]);
   return (
-    <div className="my-60 md:container md:mx-auto container mx-auto">
-      <button
-        type="button"
-        onClick={() => onOpen("members", { workSpace })}
-      >
-        メンバー一覧
-      </button>
+    <div className="my-36 md:container md:mx-auto container mx-auto">
+      <div>
+        <p className="text-5xl">{workSpace?.title}</p>
+      </div>
+      <div className="flex justify-end">
+        <Button
+          className="mx-1"
+          type="button"
+          onClick={() => onOpen("members", { workSpace })}
+        >
+          メンバー一覧
+        </Button>
+        <Button
+          className="mx-1"
+          variant="primary"
+          type="button"
+          onClick={() => onOpen("createTask", { workSpaceId: workspaceId, workSpace })}
+        >
+          タスク追加
+        </Button>
+      </div>
       <TaskComp workSpace={workSpace} />
       <CreateTaskModal triggerRefresh={triggerRefresh} />
       <TaskModal triggerRefresh={triggerRefresh} />

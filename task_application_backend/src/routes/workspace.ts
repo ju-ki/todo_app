@@ -28,8 +28,7 @@ router.get("/", async (req: Request, res: Response) => {
     //そのユーザーが抱えているタスクをワークスペース全体から取得してくる
       //そのタスクが期日三日前かつstatusがTODOまたはDOINGならnotificationテーブルにデータを作成する
       //notificationデータの作成日が5日前かつisReadがtrueでないnotificationデータを返す
-    notificationService.fetchNotifications(userId);
-
+    const notifications = await notificationService.fetchNotifications(userId);
     const workSpaces = await db.workSpace.findMany({
       where: {
         userWorkSpaces: {
@@ -39,7 +38,7 @@ router.get("/", async (req: Request, res: Response) => {
         }
       }
     });
-    res.status(200).send({ workSpaces: workSpaces });
+    res.status(200).send({ workSpaces: workSpaces, notifications:notifications });
   } catch (err) {
     console.log("[FETCHING_WORKSPACE_ERROR]", err);
     res.status(500).send({ error: err });

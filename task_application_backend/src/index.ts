@@ -8,6 +8,7 @@ const port: number = 3001;
 const userRouter = require("./routes/user");
 const workSpaceRouter = require("./routes/workspace");
 const taskRouter = require("./routes/task");
+const notificationRouter = require("./routes/notification");
 
 
 // CORS設定を追加
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/users", userRouter);
 app.use("/workspaces", workSpaceRouter);
 app.use("/tasks", taskRouter);
+app.use("/notifications", notificationRouter);
 
 
 

@@ -1,9 +1,11 @@
 import { UserButton, useAuth, useUser } from "@clerk/clerk-react";
-import { Bell, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useModal } from "src/hook/use-modal";
+import { useTaskRefresher } from "src/hook/use-task-refresher";
 import axios from "src/lib/axios";
+import NotificationItem from "../notification/NotificationItem";
 import WorkSpaceItem from "../workspace/workspace-item";
 
 type WorkSpaceProps = {
@@ -18,6 +20,8 @@ export default function Header() {
   const { userId } = useAuth();
   const { isSignedIn, isLoaded } = useUser() as { isSignedIn: Boolean; isLoaded: Boolean };
   const [workspaces, setWorkspaces] = useState<WorkSpaceProps[]>([]);
+  const [notifications, setNotifications] = useState([]);
+  const { refreshTasks, triggerRefresh } = useTaskRefresher();
 
   useEffect(() => {
     async function fetchWorkspaces() {
@@ -27,7 +31,9 @@ export default function Header() {
             userId,
           },
         });
+        console.log(response.data);
         setWorkspaces(response.data.workSpaces);
+        setNotifications(response.data.notifications);
       } catch (err) {
         console.log(err);
       }
@@ -35,7 +41,7 @@ export default function Header() {
     if (userId) {
       fetchWorkspaces();
     }
-  }, [userId]);
+  }, [userId, refreshTasks]);
 
   if (!isLoaded) {
     return null;
@@ -75,6 +81,9 @@ export default function Header() {
                   新規ワークスペースを作成
                 </button>
               </div>
+              <div>
+                <NotificationItem notifications={notifications} triggerRefresh={triggerRefresh} />
+              </div>
               <div
                 className="me-8"
               >
@@ -82,7 +91,6 @@ export default function Header() {
                   afterSignOutUrl="/"
                 />
               </div>
-              <Bell className="h-8 w-8 me-8" />
             </div>
           )}
         </div>

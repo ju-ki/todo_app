@@ -1,5 +1,3 @@
-import { useParams } from "react-router-dom";
-import { useModal } from "src/hook/use-modal";
 import TaskItem from "./TaskItem";
 
 interface TaskProps {
@@ -14,9 +12,6 @@ interface TaskProps {
 }
 
 export default function TaskComp(workSpace:Record<string, any>) {
-  const { onOpen } = useModal();
-  const { workspaceId } = useParams();
-
   const classifyTasksByStatus = (tasks:Record<string, any>) => {
     const classified: { [key:string]:any } = {
       TODO: [],
@@ -38,18 +33,10 @@ export default function TaskComp(workSpace:Record<string, any>) {
 
   return (
     <div>
-      <div>タスク一覧</div>
-      <div>
-        <button
-          type="button"
-          onClick={() => onOpen("createTask", { workSpaceId: workspaceId, workSpace })}
-        >
-          タスク追加
-        </button>
-      </div>
+      <div className="text-3xl my-10">タスク一覧</div>
       <div className="flex justify-around">
         <div>
-          <div>未着手</div>
+          <div className="font-bold">未着手</div>
           {tasksClassifiedByStatus.TODO.map((task:TaskProps) => (
             <div key={task.taskId}>
               <TaskItem taskItems={task} workSpace={workSpace} />
@@ -57,7 +44,7 @@ export default function TaskComp(workSpace:Record<string, any>) {
           ))}
         </div>
         <div>
-          <div>保留</div>
+          <div className="font-bold">保留</div>
           {tasksClassifiedByStatus.WAITING.map((task:TaskProps) => (
             <div key={task.taskId}>
               <TaskItem taskItems={task} workSpace={workSpace} />
@@ -65,7 +52,7 @@ export default function TaskComp(workSpace:Record<string, any>) {
           ))}
         </div>
         <div>
-          <div>進行中</div>
+          <div className="font-bold">進行中</div>
           {tasksClassifiedByStatus.DOING.map((task:TaskProps) => (
             <div key={task.taskId}>
               <TaskItem taskItems={task} workSpace={workSpace} />
@@ -73,7 +60,7 @@ export default function TaskComp(workSpace:Record<string, any>) {
           ))}
         </div>
         <div>
-          <div>完了</div>
+          <div className="font-bold">完了</div>
           {tasksClassifiedByStatus.DONE.map((task:TaskProps) => (
             <div key={task.taskId}>
               <TaskItem taskItems={task} workSpace={workSpace} />
