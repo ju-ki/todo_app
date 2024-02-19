@@ -20,7 +20,9 @@ const formScheme = z.object({
   }),
 });
 
-export default function CreateWorkSpaceModal() {
+export default function CreateWorkSpaceModal(
+  { triggerRefresh }:{ triggerRefresh: () => void },
+) {
   const { userId } = useAuth();
   const navigate = useNavigate();
   const { isOpen, onClose, type } = useModal();
@@ -38,6 +40,7 @@ export default function CreateWorkSpaceModal() {
       form.reset();// フォームの中身を空の状態にする
       onClose();// モーダルを閉じる
       navigate(`/workspace/${workspace.data.workspace.id}`);// リダイレクト
+      triggerRefresh();
     } catch (err) {
       console.log(err);
     }

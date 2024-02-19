@@ -224,7 +224,7 @@ router.patch("/invite/:inviteCode", async (req: Request, res: Response) => {
         inviteCode: inviteCode,
         userWorkSpaces: {
           some: {
-            userId:userId
+            userId: userId
           }
         }
       }
@@ -249,11 +249,76 @@ router.patch("/invite/:inviteCode", async (req: Request, res: Response) => {
     //返すのはワークスペースの方が良い?(中間テーブル返すのは違和感)
     res.status(201).send({ workSpace: workSpace });
 
-    } catch (err) {
-      console.log("UPDATE_WORKSPACE_ERROR:", err);
-      res.status(500).send({ "message": "Internal Server Error" });
+  } catch (err) {
+    console.log("UPDATE_WORKSPACE_ERROR:", err);
+    res.status(500).send({ "message": "Internal Server Error" });
+  }
+});
+
+router.delete("/", async (req: Request, res: Response) => {
+  try {
+    const db = new PrismaClient();
+    const workSpaceId = req.query.workSpaceId as string;
+    const userId = req.query.userId as string;
+    const user = await clerkClient.users.getUser(userId);
+
+    if (!user) {
+      res.status(401).send({ "message": "Unauthorized" });
     }
-  })
+
+    if (!workSpaceId) {
+      res.status(400).send({ "message": "WorkSpaceId is Missing" });
+    }
+
+    await db.workSpace.delete({
+      where: {
+        id: workSpaceId
+      }
+    });
+
+    await db.userWorkSpace.deleteMany({
+      where: {
+        workSpaceId: workSpaceId
+      }
+    });
+
+    const tasksToDelete = await db.task.findMany({
+      where: {
+        workSpaceId: workSpaceId,
+      },
+      select: {
+        taskId: true, // ここで必要なフィールドを指定
+      },
+    });
+
+    await db.task.deleteMany({
+      where: {
+        workSpaceId:workSpaceId
+      },
+    })
+
+    await db.notification.deleteMany({
+      where: {
+        taskId: {
+          in:tasksToDelete.map(task => task.taskId)
+        }
+      }
+    })
+
+    await db.taskAssignments.deleteMany({
+      where: {
+        taskId: {
+          in:tasksToDelete.map(task => task.taskId)
+        }
+      }
+    })
+
+    res.status(200).send({ message: "success" });
+  }catch(err){
+    console.log("FETCH_DELETE_ERROR:", err);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 
 
 module.exports = router;

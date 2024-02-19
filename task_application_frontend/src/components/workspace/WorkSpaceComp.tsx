@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useModal } from 'src/hook/use-modal';
 import { useTaskRefresher } from 'src/hook/use-task-refresher';
 import axios from 'src/lib/axios';
@@ -22,9 +22,11 @@ type WorkSpaceProps = {
 export default function WorkSpaceComp() {
   const { userId } = useAuth();
   const { workspaceId } = useParams();
+  const navigate = useNavigate();
   const { refreshTasks, triggerRefresh } = useTaskRefresher();
   const { onOpen } = useModal();
   const [workSpace, setWorkSpace] = useState<WorkSpaceProps>();
+  const [user, setUser] = useState<{ role:string } | null>(null);
 
   useEffect(() => {
     async function fetchWorkSpacesDetail() {
@@ -35,6 +37,10 @@ export default function WorkSpaceComp() {
             workSpaceId: workspaceId,
           },
         });
+        setUser(response.data.workSpace.userWorkSpaces.find((
+          userData: Record<string, any>,
+        ) => userData.user.userId === userId));
+
         setWorkSpace(response.data.workSpace);
       } catch (err) {
         console.log(err);
@@ -44,10 +50,39 @@ export default function WorkSpaceComp() {
       fetchWorkSpacesDetail();
     }
   }, [workspaceId, userId, refreshTasks]);
+
+  const onDeleteWorksSpace = async () => {
+    try {
+      if (window.confirm("削除しますか?")) {
+        await axios.delete("/workspaces", {
+          params: {
+            userId,
+            workSpaceId: workspaceId,
+          },
+        });
+        navigate("/");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="my-36 md:container md:mx-auto container mx-auto">
-      <div>
+      <div className="flex justify-start items-center">
         <p className="text-5xl">{workSpace?.title}</p>
+        {user && user?.role === "ADMIN" ? (
+          <Button
+            variant="destructive"
+            className="mx-3"
+            onClick={() => onDeleteWorksSpace()}
+          >
+            ワークスペースの削除
+          </Button>
+
+        ) : (
+          <div />
+        )}
       </div>
       <div className="flex justify-end">
         <Button

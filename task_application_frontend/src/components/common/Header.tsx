@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useModal } from "src/hook/use-modal";
 import { useTaskRefresher } from "src/hook/use-task-refresher";
 import axios from "src/lib/axios";
+import CreateWorkSpaceModal from "../modal/create-workspace-modal";
 import NotificationItem from "../notification/NotificationItem";
 import WorkSpaceItem from "../workspace/workspace-item";
 
@@ -31,7 +32,6 @@ export default function Header() {
             userId,
           },
         });
-        console.log(response.data);
         setWorkspaces(response.data.workSpaces);
         setNotifications(response.data.notifications);
       } catch (err) {
@@ -80,6 +80,7 @@ export default function Header() {
                   <Plus className="h-4 w-4" />
                   新規ワークスペースを作成
                 </button>
+                <CreateWorkSpaceModal triggerRefresh={triggerRefresh} />
               </div>
               <div>
                 <NotificationItem notifications={notifications} triggerRefresh={triggerRefresh} />
