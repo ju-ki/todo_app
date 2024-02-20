@@ -39,6 +39,8 @@ module.exports = {
         'src/lib/utils.ts'
     ],
     "rules": {
+        "no-alert": "off",
+        "no-console": "off",
         "react/react-in-jsx-scope": "off",
         "quotes": "off",
         "@typescript-eslint/quotes": "off",
